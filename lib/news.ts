@@ -35,6 +35,58 @@ export type NewsListResult = {
   };
 };
 
+export type UserNewsRecord = {
+  id: string;
+  url: string;
+  source_name: string | null;
+  author: string | null;
+  title: string;
+  description: string | null;
+  published_at: string | null;
+  keyword: string | null;
+  fetched_at: string | null;
+  search_request_id: number;
+};
+
+export type UserNewsListResult = {
+  rows: UserNewsRecord[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+function buildWhereByUser(filters: NewsFilters, initialParamIndex = 2) {
+  const conditions: string[] = [];
+  const values: Array<string | number> = [];
+
+  if (filters.keyword) {
+    values.push(filters.keyword);
+    conditions.push(`un.keyword = $${initialParamIndex + values.length - 1}`);
+  }
+
+  if (filters.author) {
+    values.push(filters.author);
+    conditions.push(`a.author = $${initialParamIndex + values.length - 1}`);
+  }
+
+  if (filters.language) {
+    values.push(filters.language);
+    conditions.push(`un.language = $${initialParamIndex + values.length - 1}`);
+  }
+
+  if (filters.q) {
+    values.push(`%${filters.q}%`);
+    const param = `$${initialParamIndex + values.length - 1}`;
+    conditions.push(`(a.title ILIKE ${param} OR COALESCE(a.description, '') ILIKE ${param})`);
+  }
+
+  return {
+    whereSql: conditions.length > 0 ? ` AND ${conditions.join(" AND ")}` : "",
+    values,
+  };
+}
+
 function sanitizePage(value?: number): number {
   if (!value || Number.isNaN(value) || value < 1) return 1;
   return Math.floor(value);
@@ -155,5 +207,61 @@ export async function listNews(filters: NewsFilters): Promise<NewsListResult> {
     limit,
     totalPages,
     options,
+  };
+}
+
+export async function listNewsForUser(
+  userId: number,
+  filters: NewsFilters = {},
+): Promise<UserNewsListResult> {
+  const page = sanitizePage(filters.page);
+  const limit = sanitizeLimit(filters.limit);
+  const offset = (page - 1) * limit;
+  const { whereSql, values } = buildWhereByUser(filters);
+  const queryValues = [userId, ...values];
+
+  const countResult = await pool.query<{ count: string }>(
+    `
+    SELECT COUNT(*)::text AS count
+    FROM user_news as un
+    JOIN articles as a ON a.id = un.article_id
+    WHERE un.user_id = $1
+    ${whereSql}
+    `,
+    queryValues,
+  );
+
+  const total = Number(countResult.rows[0]?.count ?? 0);
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+
+  const listValues = [...queryValues, limit, offset];
+  const { rows } = await pool.query<UserNewsRecord>(
+    `
+    SELECT
+    a.id,
+    a.url,
+    a.source_name,
+    a.author,
+    a.title,
+    a.description,
+    a.published_at,
+    un.keyword,
+    un.fetched_at,
+    un.search_request_id
+    FROM user_news as un JOIN articles as a ON a.id = un.article_id
+    WHERE un.user_id = $1
+    ${whereSql}
+    ORDER BY un.fetched_at DESC, a.published_at DESC
+    LIMIT $${listValues.length - 1} OFFSET $${listValues.length}
+    `,
+    listValues,
+  );
+
+  return {
+    rows,
+    total,
+    page,
+    limit,
+    totalPages,
   };
 }
