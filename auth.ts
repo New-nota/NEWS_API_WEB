@@ -21,7 +21,7 @@ export const authConfig: NextAuthConfig = {
 
       const googleProfile = profile as GoogleProfile | undefined;
       if (!googleProfile?.sub) return false;
-      if (googleProfile.email_verified !== true) return false;
+      //if (googleProfile.email_verified !== true) return false;
       if (!user.email) return false;
 
       await upsertUserFromGoogleProfile({

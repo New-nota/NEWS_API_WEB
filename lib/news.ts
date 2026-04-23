@@ -72,7 +72,7 @@ function buildWhereByUser(filters: NewsFilters, initialParamIndex = 2) {
 
   if (filters.language) {
     values.push(filters.language);
-    conditions.push(`un.language = $${initialParamIndex + values.length - 1}`);
+    conditions.push(`sr.language = $${initialParamIndex + values.length - 1}`);
   }
 
   if (filters.q) {
@@ -249,6 +249,7 @@ export async function listNewsForUser(
     un.fetched_at,
     un.search_request_id
     FROM user_news as un JOIN articles as a ON a.id = un.article_id
+    JOIN search_requests as sr ON sr.id = un.search_request_id
     WHERE un.user_id = $1
     ${whereSql}
     ORDER BY un.fetched_at DESC, a.published_at DESC
