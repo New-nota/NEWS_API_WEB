@@ -1,14 +1,14 @@
-import { auth } from "@/auth";
-import { SignOutButton } from "@/components/auth/signout-button";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { SignOutButton } from "@/components/auth/signout-button";
+import { getCurrentSession } from "@/lib/users";
 
 export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  const session = await getCurrentSession();
 
   if (!session?.user) {
     redirect("/login");
@@ -19,18 +19,18 @@ export default async function ProtectedLayout({
       <header className="topbar">
         <div>
           <p className="eyebrow">News ETL</p>
-          <h1 className="topbar-title">Панель управления новостями</h1>
+          <h1 className="topbar-title">News Dashboard</h1>
         </div>
 
         <div className="topbar-actions">
           <nav className="nav-links">
-            <Link href="/dashboard">Лента</Link>
-            <Link href="/analytics">Аналитика</Link>
+            <Link href="/dashboard">Dashboard</Link>
+            <Link href="/analytics">Analytics</Link>
           </nav>
           <div className="user-block">
             <div>
-              <div className="user-name">{session.user.name ?? "Пользователь"}</div>
-              <div className="user-email">{session.user.email}</div>
+              <div className="user-name">{session.user.name ?? "User"}</div>
+              <div className="user-email">{session.user.email ?? "email-not-available"}</div>
             </div>
             <SignOutButton />
           </div>

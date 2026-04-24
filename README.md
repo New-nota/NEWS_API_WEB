@@ -1,105 +1,146 @@
-# News Web Dashboard for NEWS_API_ETL_Project
+# News Web Dashboard
 
-Веб-интерфейс для твоего текущего Python ETL-проекта. Он не заменяет ETL, а живёт рядом с ним:
-- Python по-прежнему тянет новости из NewsAPI;
-- фильтрует их;
-- складывает в PostgreSQL;
-- Next.js показывает ленту и аналитику в браузере после входа через Google.
+Next.js dashboard for viewing user-specific news and analytics from PostgreSQL.
 
-## Что умеет
-- вход через Google;
-- защищённые страницы `/dashboard` и `/analytics`;
-- просмотр новостей из PostgreSQL;
-- фильтрация по `keyword`, `author`, `language`, поиск по тексту;
-- аналитика по языкам, авторам, keyword и дням;
-- защищённые API-роуты `/api/news` и `/api/analytics`.
+## Stack
 
-## Важно
-Этот проект специально подогнан под текущую таблицу из твоего Python-репозитория:
-- таблица: `bad_news_bears`
-- поля: `id`, `language`, `key_word`, `author`, `title`, `description`, `url`, `published_at`, `fetched_at`
-
-Если ты потом изменишь ETL — просто поправишь mapping в `.env.local`.
-
-## Чего сейчас нет в БД
-Твоя текущая таблица **не хранит**:
-- `source.name` из NewsAPI;
-- статус статьи (`accepted/rejected`) в самой БД;
-- причины отбраковки в БД.
-
-Значит вебка **не может честно показать** source/status/reject reasons, пока ты не начнёшь это сохранять в PostgreSQL.
-
-## Стек
-- Next.js
-- React
-- TypeScript
-- Bun
-- Auth.js / NextAuth
+- Next.js 16 (App Router)
+- React 19 + TypeScript
+- Auth.js / NextAuth (Google OAuth)
 - PostgreSQL (`pg`)
 
-## Быстрый старт
+## Main features
+
+- Google sign-in
+- Protected pages:
+  - `/dashboard`
+  - `/analytics`
+- Protected API routes:
+  - `GET /api/news`
+  - `GET /api/analytics`
+  - `POST /api/searches`
+  - `GET /api/searches/:id`
+- Filters, pagination, request queue UI
+- Security middleware headers
+- Unified API response shape: `{ ok, data|error, requestId }`
+
+## Responsibility split with NEWS_API_ETL_Project
+
+- `NEWS_API_ETL_Project` owns data ingestion, NewsAPI calls, filtering/scoring, and writing results to DB.
+- `NEWS_API_WEB` owns authentication, user dashboard UI, analytics UI, and enqueueing user requests into `search_requests`.
+- `NEWS_API_WEB` does not call NewsAPI and does not run ETL workers.
+
+## Quick start
 
 ```bash
-bun install
+npm ci
 cp .env.example .env.local
-bun run dev
+npm run dev
 ```
 
-Открывай:
+Open:
 
 ```text
 http://localhost:3000
 ```
 
-## Что заполнить в `.env.local`
+## Environment variables
 
 ```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/news_db
-AUTH_SECRET=your_long_random_secret
-AUTH_GOOGLE_ID=your_google_client_id
-AUTH_GOOGLE_SECRET=your_google_client_secret
-AUTH_TRUST_HOST=true
+# PostgreSQL
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/db_news
+DB_CONNECTION_TIMEOUT_MS=5000
+DB_STATEMENT_TIMEOUT_MS=10000
+DB_IDLE_TIMEOUT_MS=10000
 
-NEWS_TABLE=bad_news_bears
-NEWS_COL_ID=id
-NEWS_COL_TITLE=title
-NEWS_COL_DESCRIPTION=description
-NEWS_COL_AUTHOR=author
-NEWS_COL_URL=url
-NEWS_COL_PUBLISHED_AT=published_at
-NEWS_COL_FETCHED_AT=fetched_at
-NEWS_COL_KEYWORD=key_word
-NEWS_COL_LANGUAGE=language
+# Auth.js / Google OAuth
+AUTH_SECRET=replace_me_with_a_long_random_secret
+AUTH_GOOGLE_ID=replace_me
+AUTH_GOOGLE_SECRET=replace_me
+AUTH_TRUST_HOST=false
 ```
 
-## Google OAuth
-В Google Cloud Console создай OAuth Client ID и добавь redirect URI:
+## Scripts
 
-```text
-http://localhost:3000/api/auth/callback/google
+```bash
+npm run dev
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+npm run check
 ```
 
-## Архитектура
+## Database bootstrap
 
-```text
-Твой Python ETL -> PostgreSQL (news_db.bad_news_bears) -> Next.js dashboard
+Create required dashboard tables:
+
+```bash
+psql "$DATABASE_URL" -f db/migrations/0001_app_schema.sql
 ```
 
-## API
+Shared DB contract (compatible with `NEWS_API_ETL_Project`) is:
+- `app_users`
+- `articles`
+- `search_requests`
+- `user_news`
+- `request_stats`
 
-### Получить новости
+News pipeline workers should write/update data in these shared tables; this web app only reads them (plus creates queue rows in `search_requests`).
+
+## API examples
+
 ```text
 GET /api/news?q=ai&keyword=AI&author=Ivan%20Petrov&language=ru&page=1&limit=20
-```
-
-### Получить аналитику
-```text
 GET /api/analytics
+POST /api/searches
+GET /api/searches/123
 ```
 
-## Что я бы советовал допилить в ETL потом
-1. Сохранять `source.name` в таблицу.
-2. Создать отдельную таблицу `etl_run_stats` для причин отбраковки.
-3. Добавить поле `status` или `is_valid`, если хочешь видеть модерацию/фильтры в вебке.
+`POST /api/searches` body:
 
-Тогда дашборд станет заметно жирнее.
+```json
+{
+  "keyword": "ai",
+  "language": "ru",
+  "limitCount": 20,
+  "pageSize": 50
+}
+```
+
+Success response:
+
+```json
+{
+  "ok": true,
+  "data": {},
+  "requestId": "..."
+}
+```
+
+Error response:
+
+```json
+{
+  "ok": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "..."
+  },
+  "requestId": "..."
+}
+```
+
+## Docker
+
+Build image:
+
+```bash
+docker build -t news-web-dashboard .
+```
+
+Run container:
+
+```bash
+docker run --rm -p 3000:3000 --env-file .env.local news-web-dashboard
+```

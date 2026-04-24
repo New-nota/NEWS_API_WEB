@@ -5,21 +5,32 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
-    "start": "next start"
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test:build": "tsc -p tsconfig.test.json",
+    "test": "npm run test:build && node --test --test-isolation=none \"dist-tests/tests/**/*.test.js\"",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
     "next": "^16.0.0",
-    "next-auth": "beta",
+    "next-auth": "5.0.0-beta.31",
     "pg": "^8.16.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.37.0",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.15.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "dotenv": "^17.4.2",
-    "typescript": "^5.8.0"
+    "eslint": "^9.37.0",
+    "globals": "^16.4.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.46.2"
   }
 }

@@ -1,23 +1,27 @@
-import { NextResponse } from "next/server";
-import { getCurrentAppUser } from "@/lib/users";
 import { getSearchRequestByIdForUser } from "@/lib/searches";
+import { getRequestId, handleApiError, jsonError, jsonOk } from "@/lib/api-response";
+import { requireCurrentAppUserId } from "@/lib/api-auth";
+import { parseStrictPositiveInteger } from "@/lib/validation";
 
-export async function GET(
-    _request: Request,
-    context: {params: Promise<{id: string}>}
-) {
-    const appUser = await getCurrentAppUser();
-    if (!appUser) {
-        return NextResponse.json({error: "Unauthorized"}, {status:401});
+export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
+  const requestId = getRequestId(_request);
+
+  try {
+    const appUserIdOrResponse = await requireCurrentAppUserId(requestId);
+    if (appUserIdOrResponse instanceof Response) {
+      return appUserIdOrResponse;
     }
-    const{ id } = await context.params;
-    const searchRequestId = Number(id);
-    if(!Number.isInteger(searchRequestId) || searchRequestId <= 0) {
-        return NextResponse.json({error: "Invalid id"}, {status: 400});
-    }
-    const row = await getSearchRequestByIdForUser(searchRequestId, appUser.id);
+
+    const { id } = await context.params;
+    const searchRequestId = parseStrictPositiveInteger(id, "id");
+
+    const row = await getSearchRequestByIdForUser(searchRequestId, appUserIdOrResponse);
     if (!row) {
-        return NextResponse.json({ error: "Not found"}, {status : 404});
+      return jsonError(requestId, 404, "NOT_FOUND", "Search request not found");
     }
-    return NextResponse.json(row);
+
+    return jsonOk(requestId, row);
+  } catch (error) {
+    return handleApiError(error, requestId);
+  }
 }

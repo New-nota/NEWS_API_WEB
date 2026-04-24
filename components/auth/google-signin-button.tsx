@@ -9,7 +9,7 @@ export function GoogleSignInButton() {
       }}
     >
       <button className="button button-primary" type="submit">
-        Войти через Google
+        Sign in with Google
       </button>
     </form>
   );

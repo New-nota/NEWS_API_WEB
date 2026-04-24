@@ -23,10 +23,10 @@ Thumbs.db
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 
 # coverage
 coverage/
+dist-tests/
 
 # temp
 tmp/
