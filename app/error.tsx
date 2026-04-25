@@ -16,12 +16,12 @@ export default function GlobalError({
   return (
     <main className="auth-page">
       <section className="auth-card">
-        <h1>Something went wrong</h1>
+        <h1>ШОТО тут не так</h1>
         <p className="muted">
-          Request could not be completed. Please retry, and if the issue persists contact support.
+          Поиск не смог. Пожалуйста, нажмите "АААА" если не помогло, то это грустно.
         </p>
         <button className="button button-primary" onClick={() => reset()} type="button">
-          Retry
+          АААА
         </button>
       </section>
     </main>

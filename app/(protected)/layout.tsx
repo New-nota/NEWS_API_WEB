@@ -18,14 +18,14 @@ export default async function ProtectedLayout({
     <div className="app-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">News ETL</p>
-          <h1 className="topbar-title">News Dashboard</h1>
+          <p className="eyebrow">Сборник ачишуительных новостей</p>
+          <h1 className="topbar-title">Новости</h1>
         </div>
 
         <div className="topbar-actions">
           <nav className="nav-links">
-            <Link href="/dashboard">Dashboard</Link>
-            <Link href="/analytics">Analytics</Link>
+            <Link href="/dashboard">Найти по слову</Link>
+            <Link href="/analytics">ААНАЛИТИКА</Link>
           </nav>
           <div className="user-block">
             <div>

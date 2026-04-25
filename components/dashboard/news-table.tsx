@@ -36,7 +36,7 @@ export function NewsTable({ rows }: NewsTableProps) {
   if (rows.length === 0) {
     return (
       <div className="empty-state">
-        No news found for selected filters. Create a search request or loosen filter constraints.
+        Тут ничего ни светлого ни фильтрованного. Сохздайте запрос или примените другой фильтр
       </div>
     );
   }
@@ -46,14 +46,14 @@ export function NewsTable({ rows }: NewsTableProps) {
       <table className="news-table">
         <thead>
           <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Keyword</th>
-            <th>Language</th>
-            <th>Published at</th>
-            <th>Fetched at</th>
-            <th>Source</th>
-            <th>Link</th>
+            <th>Заголовок</th>
+            <th>Автор</th>
+            <th>Ключевое слово</th>
+            <th>Язык</th>
+            <th>Время публикации</th>
+            <th>Время запроса</th>
+            <th>Источник</th>
+            <th>СсылОчка</th>
           </tr>
         </thead>
         <tbody>
@@ -78,10 +78,10 @@ export function NewsTable({ rows }: NewsTableProps) {
                 <td>
                   {externalUrl ? (
                     <a href={externalUrl} rel="noreferrer noopener" target="_blank">
-                      Open
+                      Открыть
                     </a>
                   ) : (
-                    <span className="muted">Invalid URL</span>
+                    <span className="muted">Левая ссылка</span>
                   )}
                 </td>
               </tr>

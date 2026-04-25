@@ -3,10 +3,10 @@ import { GoogleSignInButton } from "@/components/auth/google-signin-button";
 import { getCurrentSession } from "@/lib/users";
 
 const errorMap: Record<string, string> = {
-  AccessDenied: "Access denied. Verify that your Google account is confirmed.",
-  OAuthSignin: "Failed to start Google sign-in flow.",
-  OAuthCallbackError: "Google returned an OAuth callback error.",
-  OAuthCreateAccount: "Failed to create a user session.",
+  AccessDenied: "Доступ запрещен. Верефицируй гугл аккаунт.",
+  OAuthSignin: "Ты запорол аутентификацию. как..",
+  OAuthCallbackError: "Гугл вернул ошибку.",
+  OAuthCreateAccount: "Полный провал создания сессии.",
 };
 
 export default async function LoginPage({
@@ -26,10 +26,10 @@ export default async function LoginPage({
   return (
     <main className="auth-page">
       <section className="auth-card">
-        <div className="badge">News ETL Dashboard</div>
-        <h1>Sign in to your dashboard</h1>
+        <div className="badge">BAD NEWS BEARS новости</div>
+        <h1>Зарегестрироваться</h1>
         <p className="muted">
-          Authentication is required to access user-scoped news feeds and analytics.
+          Для доступа к новостным лентам и аналитике, доступным только пользователям, требуется аутентификация.
         </p>
 
         {message ? <div className="alert">{message}</div> : null}
@@ -37,11 +37,11 @@ export default async function LoginPage({
         <GoogleSignInButton />
 
         <div className="hint-block">
-          <h2>Inside the app</h2>
+          <h2>Что внутри?</h2>
           <ul>
-            <li>PostgreSQL news feed view</li>
-            <li>Filtering by keyword, author and language</li>
-            <li>Analytics by search requests and loaded data</li>
+            <li>PostgreSQL храним там ваши данные &#10084;</li>
+            <li>Гарантируем что у новости будет максимальное количество информации</li>
+            <li>АНАЛитика по уже существущим новостям и статьям</li>
           </ul>
         </div>
       </section>

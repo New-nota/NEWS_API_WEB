@@ -15,10 +15,10 @@ export default function ProtectedError({
 
   return (
     <section className="card stack">
-      <h2>Failed to load dashboard data</h2>
-      <p className="muted">The server returned an error while loading protected data.</p>
+      <h2>ОШИБКА ПОДКЛЮЧЕНИЯ</h2>
+      <p className="muted">Сервер споткнулся пока создавался запрос.</p>
       <button className="button button-primary" onClick={() => reset()} type="button">
-        Retry
+        ПОПЫТаться снова
       </button>
     </section>
   );

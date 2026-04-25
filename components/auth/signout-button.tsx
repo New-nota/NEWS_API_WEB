@@ -9,7 +9,7 @@ export function SignOutButton() {
       }}
     >
       <button className="button button-secondary" type="submit">
-        Sign out
+        Выйти из аккаунта 
       </button>
     </form>
   );

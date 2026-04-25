@@ -17,7 +17,7 @@ function buildDashboardQuery(filters: ParsedNewsFilters, overrides: Partial<Pars
   if (merged.q) params.set("q", merged.q);
   if (merged.keyword) params.set("keyword", merged.keyword);
   if (merged.author) params.set("author", merged.author);
-  if (merged.language) params.set("language", merged.language);
+  if (merged.language) params.set("languag", merged.language);
   params.set("page", String(merged.page));
   params.set("limit", String(merged.limit));
 
@@ -47,14 +47,14 @@ export default async function DashboardPage({
   return (
     <div className="stack">
       <section className="card stack">
-        <h1>Dashboard</h1>
+        <h1>ШОПОНОВОСТЯМ</h1>
         <SearchRequestForm />
       </section>
 
       <section className="card stack">
-        <h2>My search requests</h2>
+        <h2>Мои запросы на поиск</h2>
         {searches.length === 0 ? (
-          <p className="muted">No requests yet.</p>
+          <p className="muted">Пока нема запросов.</p>
         ) : (
           <div className="stack">
             {searches.map((item) => (
@@ -64,7 +64,7 @@ export default async function DashboardPage({
                   <span className={`status-badge status-${item.status}`}>{item.status}</span>
                 </div>
                 <div className="muted">
-                  language={item.language}, page_size={item.page_size}, limit_count={item.limit_count}
+                  язык = {item.language}, размер страницы = {item.page_size}, лимит новостей = {item.limit_count}
                 </div>
                 {item.error_text ? <p className="alert">{item.error_text}</p> : null}
               </article>
@@ -75,9 +75,9 @@ export default async function DashboardPage({
 
       <section className="card stack">
         <div className="section-header">
-          <h2>My news</h2>
+          <h2>Мои новости</h2>
           <p className="muted">
-            Total: {newsData.total} - Page {filters.page} / {newsData.totalPages}
+            Тотал: {newsData.total} - страница {filters.page} / {newsData.totalPages}
           </p>
         </div>
 
@@ -97,18 +97,18 @@ export default async function DashboardPage({
         <div className="pagination">
           {hasPrevPage ? (
             <Link className="button button-secondary" href={buildDashboardQuery(filters, { page: filters.page - 1 })}>
-              Previous
+              Пердыдушая
             </Link>
           ) : (
-            <span className="button button-secondary disabled">Previous</span>
+            <span className="button button-secondary disabled">Пердыдущая</span>
           )}
 
           {hasNextPage ? (
             <Link className="button button-secondary" href={buildDashboardQuery(filters, { page: filters.page + 1 })}>
-              Next
+              Следущая
             </Link>
           ) : (
-            <span className="button button-secondary disabled">Next</span>
+            <span className="button button-secondary disabled">Следущая</span>
           )}
         </div>
       </section>

@@ -96,19 +96,19 @@ export function SearchRequestForm() {
       <h2>Create search request</h2>
 
       <div className="field">
-        <label htmlFor="keyword-input">Keyword</label>
+        <label htmlFor="keyword-input">Ключевое слово</label>
         <input
           id="keyword-input"
           maxLength={120}
           onChange={(event) => setKeyword(event.target.value)}
-          placeholder="Keyword"
+          placeholder="слово"
           required
           value={keyword}
         />
       </div>
 
       <div className="field">
-        <label htmlFor="language-input">Language (ISO 639-1)</label>
+        <label htmlFor="language-input">Язык </label>
         <input
           id="language-input"
           maxLength={2}
@@ -121,7 +121,7 @@ export function SearchRequestForm() {
       </div>
 
       <div className="field">
-        <label htmlFor="limit-count-input">limitCount</label>
+        <label htmlFor="limit-count-input">Лимит по новостям</label>
         <input
           id="limit-count-input"
           max={LIMIT_COUNT_MAX}
@@ -134,7 +134,7 @@ export function SearchRequestForm() {
       </div>
 
       <div className="field">
-        <label htmlFor="page-size-input">pageSize</label>
+        <label htmlFor="page-size-input">Размер новостей на страницу (при плохом интернете лучше 20)</label>
         <input
           id="page-size-input"
           max={PAGE_SIZE_MAX}
@@ -142,13 +142,13 @@ export function SearchRequestForm() {
           onChange={(event) => setPageSize(Number(event.target.value))}
           required
           type="number"
-          value={pageSize}
+          value={20}
         />
       </div>
 
       <div className="filter-actions">
         <button className="button button-primary" disabled={isSubmitting} type="submit">
-          {isSubmitting ? "Submitting..." : "Queue request"}
+          {isSubmitting ? "Submitting..." : "Закинуть в очередь"}
         </button>
       </div>
 

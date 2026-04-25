@@ -21,14 +21,14 @@ export function FilterForm({ current, options }: FilterFormProps) {
       <input name="page" type="hidden" value="1" />
 
       <div className="field">
-        <label htmlFor="q">Search by title or description</label>
-        <input defaultValue={current.q ?? ""} id="q" name="q" placeholder="For example: AI" />
+        <label htmlFor="q">Поиск по заголовку или ключевому слову</label>
+        <input defaultValue={current.q ?? ""} id="q" name="q" placeholder="Например: пиво" />
       </div>
 
       <div className="field">
-        <label htmlFor="keyword">Keyword</label>
+        <label htmlFor="keyword">ключевое слово</label>
         <select defaultValue={current.keyword ?? ""} id="keyword" name="keyword">
-          <option value="">All</option>
+          <option value="">Все</option>
           {options.keywords.map((keyword) => (
             <option key={keyword} value={keyword}>
               {keyword}
@@ -38,9 +38,9 @@ export function FilterForm({ current, options }: FilterFormProps) {
       </div>
 
       <div className="field">
-        <label htmlFor="author">Author</label>
+        <label htmlFor="author">Автор</label>
         <select defaultValue={current.author ?? ""} id="author" name="author">
-          <option value="">All</option>
+          <option value="">Все</option>
           {options.authors.map((author) => (
             <option key={author} value={author}>
               {author}
@@ -50,9 +50,9 @@ export function FilterForm({ current, options }: FilterFormProps) {
       </div>
 
       <div className="field">
-        <label htmlFor="language">Language</label>
+        <label htmlFor="language">Язык</label>
         <select defaultValue={current.language ?? ""} id="language" name="language">
-          <option value="">All</option>
+          <option value="">Любой</option>
           {options.languages.map((language) => (
             <option key={language} value={language}>
               {language}
@@ -62,7 +62,7 @@ export function FilterForm({ current, options }: FilterFormProps) {
       </div>
 
       <div className="field">
-        <label htmlFor="limit">Per page</label>
+        <label htmlFor="limit">Количество статей на страницу</label>
         <select defaultValue={String(current.limit)} id="limit" name="limit">
           {[10, 20, 50, 100].map((value) => (
             <option key={value} value={value}>
@@ -74,10 +74,10 @@ export function FilterForm({ current, options }: FilterFormProps) {
 
       <div className="filter-actions">
         <button className="button button-primary" type="submit">
-          Apply filters
+          Применить фильтр
         </button>
         <Link className="button button-secondary" href="/dashboard">
-          Reset
+          ХАЛЯ ОТМЕНА
         </Link>
       </div>
     </form>

@@ -17,15 +17,15 @@ export const pool =
   global.__newsDashboardPool ??
   new Pool({
     connectionString,
-    connectionTimeoutMillis: Number.isFinite(connectionTimeoutMillis)
-      ? Math.max(1000, Math.trunc(connectionTimeoutMillis))
-      : 5000,
-    statement_timeout: Number.isFinite(statementTimeout)
-      ? Math.max(1000, Math.trunc(statementTimeout))
-      : 10000,
-    idleTimeoutMillis: Number.isFinite(idleTimeoutMillis)
-      ? Math.max(1000, Math.trunc(idleTimeoutMillis))
-      : 10000,
+    // connectionTimeoutMillis: Number.isFinite(connectionTimeoutMillis)
+    //   ? Math.max(1000, Math.trunc(connectionTimeoutMillis))
+    //   : 5000,
+    // statement_timeout: Number.isFinite(statementTimeout)
+    //   ? Math.max(1000, Math.trunc(statementTimeout))
+    //   : 10000,
+    // idleTimeoutMillis: Number.isFinite(idleTimeoutMillis)
+    //   ? Math.max(1000, Math.trunc(idleTimeoutMillis))
+    //   : 10000,
   });
 
 if (process.env.NODE_ENV !== "production") {
