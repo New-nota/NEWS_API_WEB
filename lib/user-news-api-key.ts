@@ -3,6 +3,7 @@ import { pool } from "@/lib/db";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
+const NEWSAPI_SERVICE = "news_api";
 
 export type NewsApiKeyStatus = {
   hasNewsApiKey: boolean;
@@ -10,13 +11,13 @@ export type NewsApiKeyStatus = {
   updatedAt: string | null;
 };
 
-type EncryptedNewsApiKey = {
+type EncryptedUserKey = {
   encryptedKey: string;
   iv: string;
   authTag: string;
 };
 
-type NewsApiKeyRow = {
+type UserKeyRow = {
   encrypted_key: string;
   iv: string;
   auth_tag: string;
@@ -26,16 +27,21 @@ function getEncryptionKey() {
   const secret = process.env.NEWS_API_KEY_ENCRYPTION_SECRET ?? process.env.AUTH_SECRET;
 
   if (!secret) {
-    throw new Error("NEWS_API_KEY_ENCRYPTION_SECRET or AUTH_SECRET must be set to store NewsAPI keys.");
+    throw new Error("NEWS_API_KEY_ENCRYPTION_SECRET or AUTH_SECRET must be set to store user keys.");
   }
 
   return createHash("sha256").update(secret).digest();
 }
 
-function encryptNewsApiKey(apiKey: string): EncryptedNewsApiKey {
+function encryptUserKey(apiKey: string): EncryptedUserKey {
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(ALGORITHM, getEncryptionKey(), iv);
-  const encrypted = Buffer.concat([cipher.update(apiKey, "utf8"), cipher.final()]);
+
+  const encrypted = Buffer.concat([
+    cipher.update(apiKey, "utf8"),
+    cipher.final(),
+  ]);
+
   const authTag = cipher.getAuthTag();
 
   return {
@@ -45,7 +51,7 @@ function encryptNewsApiKey(apiKey: string): EncryptedNewsApiKey {
   };
 }
 
-export function decryptNewsApiKey(row: NewsApiKeyRow): string {
+export function decryptUserKey(row: UserKeyRow): string {
   const decipher = createDecipheriv(
     ALGORITHM,
     getEncryptionKey(),
@@ -67,11 +73,11 @@ export async function getNewsApiKeyStatusForUser(userId: number): Promise<NewsAp
         TRUE AS "hasNewsApiKey",
         key_last4 AS "last4",
         updated_at::text AS "updatedAt"
-      FROM user_news_api_keys
-      WHERE user_id = $1
+      FROM users_keys
+      WHERE user_id = $1 AND service = $2
       LIMIT 1
     `,
-    [userId],
+    [userId, NEWSAPI_SERVICE],
   );
 
   return rows[0] ?? { hasNewsApiKey: false, last4: null, updatedAt: null };
@@ -82,11 +88,11 @@ export async function hasNewsApiKeyForUser(userId: number): Promise<boolean> {
     `
       SELECT EXISTS (
         SELECT 1
-        FROM user_news_api_keys
-        WHERE user_id = $1
+        FROM users_keys
+        WHERE user_id = $1 AND service = $2
       ) AS exists
     `,
-    [userId],
+    [userId, NEWSAPI_SERVICE],
   );
 
   return rows[0]?.exists ?? false;
@@ -96,21 +102,22 @@ export async function saveNewsApiKeyForUser(
   userId: number,
   apiKey: string,
 ): Promise<NewsApiKeyStatus> {
-  const encrypted = encryptNewsApiKey(apiKey);
+  const encrypted = encryptUserKey(apiKey);
   const last4 = apiKey.slice(-4);
 
   const { rows } = await pool.query<NewsApiKeyStatus>(
     `
-      INSERT INTO user_news_api_keys (
+      INSERT INTO users_keys (
         user_id,
+        service,
         encrypted_key,
         iv,
         auth_tag,
         key_last4,
         updated_at
       )
-      VALUES ($1, $2, $3, $4, $5, NOW())
-      ON CONFLICT (user_id) DO UPDATE
+      VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      ON CONFLICT (user_id, service) DO UPDATE
       SET
         encrypted_key = EXCLUDED.encrypted_key,
         iv = EXCLUDED.iv,
@@ -122,7 +129,14 @@ export async function saveNewsApiKeyForUser(
         key_last4 AS "last4",
         updated_at::text AS "updatedAt"
     `,
-    [userId, encrypted.encryptedKey, encrypted.iv, encrypted.authTag, last4],
+    [
+      userId,
+      NEWSAPI_SERVICE,
+      encrypted.encryptedKey,
+      encrypted.iv,
+      encrypted.authTag,
+      last4,
+    ],
   );
 
   return rows[0];
@@ -131,26 +145,26 @@ export async function saveNewsApiKeyForUser(
 export async function deleteNewsApiKeyForUser(userId: number): Promise<NewsApiKeyStatus> {
   await pool.query(
     `
-      DELETE FROM user_news_api_keys
-      WHERE user_id = $1
+      DELETE FROM users_keys
+      WHERE user_id = $1 AND service = $2
     `,
-    [userId],
+    [userId, NEWSAPI_SERVICE],
   );
 
   return { hasNewsApiKey: false, last4: null, updatedAt: null };
 }
 
 export async function getDecryptedNewsApiKeyForUser(userId: number): Promise<string | null> {
-  const { rows } = await pool.query<NewsApiKeyRow>(
+  const { rows } = await pool.query<UserKeyRow>(
     `
       SELECT encrypted_key, iv, auth_tag
-      FROM user_news_api_keys
-      WHERE user_id = $1
+      FROM users_keys
+      WHERE user_id = $1 AND service = $2
       LIMIT 1
     `,
-    [userId],
+    [userId, NEWSAPI_SERVICE],
   );
 
   const row = rows[0];
-  return row ? decryptNewsApiKey(row) : null;
+  return row ? decryptUserKey(row) : null;
 }
