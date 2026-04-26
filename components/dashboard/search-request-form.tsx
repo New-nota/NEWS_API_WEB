@@ -1,7 +1,8 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { useCallback, type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SearchRequestStatusTracker } from "@/components/dashboard/search-request-status-tracker";
 
 const LIMIT_COUNT_MIN = 1;
 const LIMIT_COUNT_MAX = 500;
@@ -26,23 +27,48 @@ type ApiError = {
 
 type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
+type SearchRequest = {
+  id: number;
+  user_id: number;
+  keyword: string;
+  language: string;
+  limit_count: number;
+  page_size: number;
+  status: string;
+  error_text: string | null;
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+};
+
 export function SearchRequestForm() {
   const router = useRouter();
+
   const [keyword, setKeyword] = useState("");
   const [language, setLanguage] = useState("ru");
   const [limitCount, setLimitCount] = useState(20);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(20);
+
+  const [trackingRequestId, setTrackingRequestId] = useState<number | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const handleTrackingDone = useCallback(() => {
+    setTrackingRequestId(null);
+    router.refresh();
+  }, [router]);
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     setIsSubmitting(true);
     setError("");
     setSuccess("");
 
     const normalizedKeyword = keyword.trim();
+
     if (!normalizedKeyword) {
       setError("Keyword is required");
       setIsSubmitting(false);
@@ -73,7 +99,7 @@ export function SearchRequestForm() {
         }),
       });
 
-      const payload = (await response.json().catch(() => null)) as ApiResponse<unknown> | null;
+      const payload = (await response.json().catch(() => null)) as ApiResponse<SearchRequest> | null;
 
       if (!response.ok || !payload || payload.ok === false) {
         const message = payload && payload.ok === false ? payload.error.message : "Failed to create search request";
@@ -81,8 +107,12 @@ export function SearchRequestForm() {
         return;
       }
 
+      const createdRequest = payload.data;
+
       setKeyword("");
-      setSuccess("Search request queued");
+      setSuccess("Запрос создан. Следим за статусом...");
+      setTrackingRequestId(createdRequest.id);
+
       router.refresh();
     } catch {
       setError("Network error. Please try again.");
@@ -93,7 +123,7 @@ export function SearchRequestForm() {
 
   return (
     <form className="card stack" onSubmit={onSubmit}>
-      <h2>Create search request</h2>
+      <h2>Создать запрос</h2>
 
       <div className="field">
         <label htmlFor="keyword-input">Ключевое слово</label>
@@ -108,7 +138,7 @@ export function SearchRequestForm() {
       </div>
 
       <div className="field">
-        <label htmlFor="language-input">Язык </label>
+        <label htmlFor="language-input">Язык</label>
         <input
           id="language-input"
           maxLength={2}
@@ -134,7 +164,7 @@ export function SearchRequestForm() {
       </div>
 
       <div className="field">
-        <label htmlFor="page-size-input">Размер новостей на страницу (при плохом интернете лучше 20)</label>
+        <label htmlFor="page-size-input">Размер новостей на страницу, при плохом интернете лучше 20</label>
         <input
           id="page-size-input"
           max={PAGE_SIZE_MAX}
@@ -142,7 +172,7 @@ export function SearchRequestForm() {
           onChange={(event) => setPageSize(Number(event.target.value))}
           required
           type="number"
-          value={20}
+          value={pageSize}
         />
       </div>
 
@@ -154,6 +184,13 @@ export function SearchRequestForm() {
 
       {error ? <p className="alert">{error}</p> : null}
       {success ? <p className="success-message">{success}</p> : null}
+
+      {trackingRequestId ? (
+        <SearchRequestStatusTracker
+          searchRequestId={trackingRequestId}
+          onDone={handleTrackingDone}
+        />
+      ) : null}
     </form>
   );
 }
