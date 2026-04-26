@@ -8,6 +8,7 @@ import { getUserNewsFilterOptions, listNewsForUser } from "@/lib/news";
 import { parseNewsFiltersFromSearchParams, type ParsedNewsFilters } from "@/lib/news-filters";
 import { listSearchRequestsForUser } from "@/lib/searches";
 import { getCurrentAppUserId } from "@/lib/users";
+import { DashboardAutoRefresh } from "@/components/dashboard/dashboard-auto-refresh";
 
 type DashboardSearchParams = Record<string, string | string[] | undefined>;
 
@@ -42,12 +43,15 @@ export default async function DashboardPage({
     getUserNewsFilterOptions(appUserId),
     getNewsApiKeyStatusForUser(appUserId)
   ]);
+  const hasActiveRequests = searches.some(
+  (item) => item.status === "queued" || item.status === "running",);
 
   const hasPrevPage = filters.page > 1;
   const hasNextPage = filters.page < newsData.totalPages;
 
   return (
     <div className="stack">
+      <DashboardAutoRefresh hasActiveRequests={hasActiveRequests} />
       <section className="card stack">
         <h1>ШОПОНОВОСТЯМ</h1>
         {newsApiKeyStatus.hasNewsApiKey ? (
