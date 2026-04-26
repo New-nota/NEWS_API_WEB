@@ -26,6 +26,7 @@ export default async function ProtectedLayout({
           <nav className="nav-links">
             <Link href="/dashboard">Найти по слову</Link>
             <Link href="/analytics">ААНАЛИТИКА</Link>
+            <Link href="/profile">Профиль</Link>
           </nav>
           <div className="user-block">
             <div>

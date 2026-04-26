@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { FilterForm } from "@/components/dashboard/filter-form";
 import { NewsTable } from "@/components/dashboard/news-table";
 import { SearchRequestForm } from "@/components/dashboard/search-request-form";
+import { getNewsApiKeyStatusForUser } from "@/lib/user-news-api-key";
 import { getUserNewsFilterOptions, listNewsForUser } from "@/lib/news";
 import { parseNewsFiltersFromSearchParams, type ParsedNewsFilters } from "@/lib/news-filters";
 import { listSearchRequestsForUser } from "@/lib/searches";
@@ -35,10 +36,11 @@ export default async function DashboardPage({
   const resolvedSearchParams = (await searchParams) ?? {};
   const filters = parseNewsFiltersFromSearchParams(resolvedSearchParams);
 
-  const [newsData, searches, filterOptions] = await Promise.all([
+  const [newsData, searches, filterOptions, newsApiKeyStatus] = await Promise.all([
     listNewsForUser(appUserId, filters),
     listSearchRequestsForUser(appUserId, 20),
     getUserNewsFilterOptions(appUserId),
+    getNewsApiKeyStatusForUser(appUserId)
   ]);
 
   const hasPrevPage = filters.page > 1;
@@ -48,7 +50,14 @@ export default async function DashboardPage({
     <div className="stack">
       <section className="card stack">
         <h1>ШОПОНОВОСТЯМ</h1>
-        <SearchRequestForm />
+        {newsApiKeyStatus.hasNewsApiKey ? (
+          <SearchRequestForm />
+        ) : (
+          <div className="alert">
+            Чтобы создавать запросы на новости, сначала добавь NewsAPI key в{" "}
+            <Link href="/profile">профиле</Link>.
+          </div>
+        )}
       </section>
 
       <section className="card stack">

@@ -1,5 +1,6 @@
 import { createSearchRequest } from "@/lib/searches";
 import { AppError } from "@/lib/app-error";
+import { hasNewsApiKeyForUser } from "@/lib/user-news-api-key";
 import { getRequestId, handleApiError, jsonError, jsonOk } from "@/lib/api-response";
 import { requireCurrentAppUserId } from "@/lib/api-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -26,7 +27,15 @@ export async function POST(request: Request) {
       return appUserIdOrResponse;
     }
     const appUserId = appUserIdOrResponse;
-
+    const hasNewsApiKey = await hasNewsApiKeyForUser(appUserId);
+    if (!hasNewsApiKey) {
+      return jsonError(
+        requestId,
+        403,
+        "NEWS_API_KEY_REQUIRED",
+        "Add NewsAPI key in your profile before creating news requests",
+        );
+      }
     ensureSameOrigin(request);
 
     const clientIp = getClientIp(request);
