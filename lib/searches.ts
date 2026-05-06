@@ -48,12 +48,12 @@ const AI_REPORT_JSON_SQL = `
       'model_name', air.model_name,
       'news_count', air.news_count,
       'summary', air.summary,
-      'key_points', air.key_points,
+      'key_points', air.main_conclusions,
       'sentiment_label', air.sentiment_label,
       'sentiment_score', air.sentiment_score,
       'sentiment_distribution', air.sentiment_distribution,
       'main_topics', air.main_topics,
-      'highlights', air.highlights,
+      'highlights', jsonb_build_array(air.highlight),
       'data_quality_warnings', air.data_quality_warnings,
       'created_at', air.created_at::text
     )
@@ -119,7 +119,7 @@ export async function getSearchRequestByIdForUser(
       FROM search_requests AS sr
       LEFT JOIN request_stats AS rs ON rs.search_request_id = sr.id
       LEFT JOIN user_news AS un ON un.search_request_id = sr.id
-      LEFT JOIN request_ai_reports AS air ON air.search_request_id = sr.id
+      LEFT JOIN request_ai_report AS air ON air.search_request_id = sr.id
       WHERE sr.id = $1 AND sr.user_id = $2
       GROUP BY
         sr.id,

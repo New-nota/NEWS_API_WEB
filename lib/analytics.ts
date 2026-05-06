@@ -115,7 +115,7 @@ export async function getAnalyticsForUser(userId: number): Promise<UserAnalytics
           COUNT(*) FILTER (WHERE air.sentiment_label = 'neutral')::int AS neutral_count,
           COUNT(*) FILTER (WHERE air.sentiment_label = 'neutral_negative')::int AS neutral_negative_count,
           COUNT(*) FILTER (WHERE air.sentiment_label = 'negative')::int AS negative_count
-        FROM request_ai_reports AS air
+        FROM request_ai_report AS air
         JOIN search_requests AS sr ON sr.id = air.search_request_id
         WHERE sr.user_id = $1
       `,
@@ -126,7 +126,7 @@ export async function getAnalyticsForUser(userId: number): Promise<UserAnalytics
         SELECT
           topic::text AS topic,
           COUNT(*)::int AS count
-        FROM request_ai_reports AS air
+        FROM request_ai_report AS air
         JOIN search_requests AS sr ON sr.id = air.search_request_id
         CROSS JOIN LATERAL jsonb_array_elements_text(air.main_topics) AS topic
         WHERE sr.user_id = $1
