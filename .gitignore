@@ -31,3 +31,5 @@ dist-tests/
 # temp
 tmp/
 temp/
+
+.clause/

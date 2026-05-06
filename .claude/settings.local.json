@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir C:\\\\Users\\\\Енот\\\\Desktop\\\\Pets\\\\NEWS_API_WEB *)",
+      "Bash(dir C:\\\\Users\\\\Енот\\\\Desktop\\\\Pets\\\\NEWS_API_WEB\\\\app *)",
+      "Bash(dir C:\\\\Users\\\\Енот\\\\Desktop\\\\Pets\\\\NEWS_API_WEB\\\\app\\\\api *)",
+      "Bash(dir *)",
+      "Bash(npm run *)",
+      "Bash(npm test *)"
+    ]
+  }
+}
