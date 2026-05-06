@@ -22,6 +22,7 @@ export type NewsFilters = {
   keyword?: string;
   author?: string;
   language?: string;
+  searchRequestId?: number;
   page?: number;
   limit?: number;
 };
@@ -76,6 +77,11 @@ function buildUserNewsWhere(filters: NewsFilters, initialParamIndex = 2) {
   if (filters.language) {
     values.push(filters.language);
     conditions.push(`sr.language = $${initialParamIndex + values.length - 1}`);
+  }
+
+  if (typeof filters.searchRequestId === "number" && Number.isFinite(filters.searchRequestId)) {
+    values.push(filters.searchRequestId);
+    conditions.push(`un.search_request_id = $${initialParamIndex + values.length - 1}`);
   }
 
   if (filters.q) {

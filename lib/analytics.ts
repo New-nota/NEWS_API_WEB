@@ -16,10 +16,24 @@ export type UserAnalyticsResult = {
     total_accepted_articles: number;
     total_rejected_articles: number;
   };
+  ai: {
+    total_reports: number;
+    failed_reports: number;
+    avg_sentiment_score: number | null;
+    positive_count: number;
+    neutral_positive_count: number;
+    neutral_count: number;
+    neutral_negative_count: number;
+    negative_count: number;
+    top_topics: Array<{
+      topic: string;
+      count: number;
+    }>;
+  };
 };
 
 export async function getAnalyticsForUser(userId: number): Promise<UserAnalyticsResult> {
-  const [summary, keywords, sources, requests] = await Promise.all([
+  const [summary, keywords, sources, requests, aiStats, aiTopics] = await Promise.all([
     pool.query<{ total_user_news: number; unique_articles: number }>(
       `
         SELECT
@@ -81,7 +95,60 @@ export async function getAnalyticsForUser(userId: number): Promise<UserAnalytics
       `,
       [userId],
     ),
+    pool.query<{
+      total_reports: number;
+      failed_reports: number;
+      avg_sentiment_score: number | null;
+      positive_count: number;
+      neutral_positive_count: number;
+      neutral_count: number;
+      neutral_negative_count: number;
+      negative_count: number;
+    }>(
+      `
+        SELECT
+          COUNT(*) FILTER (WHERE air.status = 'success')::int AS total_reports,
+          COUNT(*) FILTER (WHERE air.status = 'failed')::int AS failed_reports,
+          AVG(air.sentiment_score) FILTER (WHERE air.status = 'success')::float AS avg_sentiment_score,
+          COUNT(*) FILTER (WHERE air.sentiment_label = 'positive')::int AS positive_count,
+          COUNT(*) FILTER (WHERE air.sentiment_label = 'neutral_positive')::int AS neutral_positive_count,
+          COUNT(*) FILTER (WHERE air.sentiment_label = 'neutral')::int AS neutral_count,
+          COUNT(*) FILTER (WHERE air.sentiment_label = 'neutral_negative')::int AS neutral_negative_count,
+          COUNT(*) FILTER (WHERE air.sentiment_label = 'negative')::int AS negative_count
+        FROM request_ai_reports AS air
+        JOIN search_requests AS sr ON sr.id = air.search_request_id
+        WHERE sr.user_id = $1
+      `,
+      [userId],
+    ),
+    pool.query<{ topic: string; count: number }>(
+      `
+        SELECT
+          topic::text AS topic,
+          COUNT(*)::int AS count
+        FROM request_ai_reports AS air
+        JOIN search_requests AS sr ON sr.id = air.search_request_id
+        CROSS JOIN LATERAL jsonb_array_elements_text(air.main_topics) AS topic
+        WHERE sr.user_id = $1
+          AND air.status = 'success'
+        GROUP BY topic
+        ORDER BY count DESC
+        LIMIT 10
+      `,
+      [userId],
+    ),
   ]);
+
+  const aiRow = aiStats.rows[0] ?? {
+    total_reports: 0,
+    failed_reports: 0,
+    avg_sentiment_score: null,
+    positive_count: 0,
+    neutral_positive_count: 0,
+    neutral_count: 0,
+    neutral_negative_count: 0,
+    negative_count: 0,
+  };
 
   return {
     summary: summary.rows[0] ?? { total_user_news: 0, unique_articles: 0 },
@@ -95,6 +162,17 @@ export async function getAnalyticsForUser(userId: number): Promise<UserAnalytics
       total_income_articles: 0,
       total_accepted_articles: 0,
       total_rejected_articles: 0,
+    },
+    ai: {
+      total_reports: aiRow.total_reports,
+      failed_reports: aiRow.failed_reports,
+      avg_sentiment_score: aiRow.avg_sentiment_score,
+      positive_count: aiRow.positive_count,
+      neutral_positive_count: aiRow.neutral_positive_count,
+      neutral_count: aiRow.neutral_count,
+      neutral_negative_count: aiRow.neutral_negative_count,
+      negative_count: aiRow.negative_count,
+      top_topics: aiTopics.rows,
     },
   };
 }

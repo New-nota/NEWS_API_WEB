@@ -1,4 +1,5 @@
 import { pool } from "@/lib/db";
+import type { AIReport } from "@/lib/ai-report";
 
 export type SearchRequest = {
   id: number;
@@ -21,6 +22,7 @@ export type SearchRequestDetails = SearchRequest & {
   reasons_counts: unknown;
   prime_reasons: unknown;
   loaded_rows: number;
+  ai_report: AIReport | null;
 };
 
 type CreateSearchRequestInput = {
@@ -35,6 +37,28 @@ function normalizeListLimit(limit: number) {
   if (!Number.isFinite(limit)) return 20;
   return Math.min(Math.max(Math.trunc(limit), 1), 100);
 }
+
+const AI_REPORT_JSON_SQL = `
+  CASE
+    WHEN air.search_request_id IS NULL THEN NULL
+    ELSE json_build_object(
+      'status', air.status,
+      'error_text', air.error_text,
+      'model_provider', air.model_provider,
+      'model_name', air.model_name,
+      'news_count', air.news_count,
+      'summary', air.summary,
+      'key_points', air.key_points,
+      'sentiment_label', air.sentiment_label,
+      'sentiment_score', air.sentiment_score,
+      'sentiment_distribution', air.sentiment_distribution,
+      'main_topics', air.main_topics,
+      'highlights', air.highlights,
+      'data_quality_warnings', air.data_quality_warnings,
+      'created_at', air.created_at::text
+    )
+  END AS ai_report
+`;
 
 export async function createSearchRequest(input: CreateSearchRequestInput): Promise<SearchRequest> {
   const { rows } = await pool.query<SearchRequest>(
@@ -90,10 +114,12 @@ export async function getSearchRequestByIdForUser(
         rs.rejected_articles,
         rs.reasons_counts,
         rs.prime_reasons,
-        COUNT(un.id)::int AS loaded_rows
+        COUNT(un.id)::int AS loaded_rows,
+        ${AI_REPORT_JSON_SQL}
       FROM search_requests AS sr
       LEFT JOIN request_stats AS rs ON rs.search_request_id = sr.id
       LEFT JOIN user_news AS un ON un.search_request_id = sr.id
+      LEFT JOIN request_ai_reports AS air ON air.search_request_id = sr.id
       WHERE sr.id = $1 AND sr.user_id = $2
       GROUP BY
         sr.id,
@@ -102,7 +128,22 @@ export async function getSearchRequestByIdForUser(
         rs.accepted_articles,
         rs.rejected_articles,
         rs.reasons_counts,
-        rs.prime_reasons
+        rs.prime_reasons,
+        air.search_request_id,
+        air.status,
+        air.error_text,
+        air.model_provider,
+        air.model_name,
+        air.news_count,
+        air.summary,
+        air.key_points,
+        air.sentiment_label,
+        air.sentiment_score,
+        air.sentiment_distribution,
+        air.main_topics,
+        air.highlights,
+        air.data_quality_warnings,
+        air.created_at
       LIMIT 1
     `,
     [searchRequestId, userId],

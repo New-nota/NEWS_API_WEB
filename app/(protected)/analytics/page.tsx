@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AIAnalyticsSection } from "@/components/analytics/ai-analytics-section";
 import { getAnalyticsForUser } from "@/lib/analytics";
 import { getCurrentAppUserId } from "@/lib/users";
 
@@ -63,6 +64,8 @@ export default async function AnalyticsPage() {
           </div>
         )}
       </section>
+
+      <AIAnalyticsSection ai={data.ai} />
     </div>
   );
 }

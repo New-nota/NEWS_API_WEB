@@ -80,6 +80,9 @@ export default async function DashboardPage({
                   язык = {item.language}, размер страницы = {item.page_size}, лимит новостей = {item.limit_count}
                 </div>
                 {item.error_text ? <p className="alert">{item.error_text}</p> : null}
+                <Link className="button button-secondary" href={`/searches/${item.id}`}>
+                  Открыть AI Briefing
+                </Link>
               </article>
             ))}
           </div>
