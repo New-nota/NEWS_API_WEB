@@ -1,5 +1,9 @@
 import { AppError } from "@/lib/app-error";
 
+function normalizeOrigin(value: string) {
+  return value.replace(/\/$/, "");
+}
+
 export function ensureSameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (!origin) {
@@ -13,7 +17,16 @@ export function ensureSameOrigin(request: Request) {
     throw new AppError(400, "BAD_REQUEST", "Invalid request URL");
   }
 
-  if (origin !== requestOrigin) {
+  const normalizedOrigin = normalizeOrigin(origin);
+  const normalizedRequestOrigin = normalizeOrigin(requestOrigin);
+  const allowedOrigin = process.env.AUTH_URL
+    ? normalizeOrigin(process.env.AUTH_URL)
+    : null;
+
+  if (
+    normalizedOrigin !== normalizedRequestOrigin &&
+    normalizedOrigin !== allowedOrigin
+  ) {
     throw new AppError(
       403,
       "FORBIDDEN_ORIGIN",
