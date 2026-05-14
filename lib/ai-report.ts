@@ -8,9 +8,16 @@ export type AISentimentLabel =
   | "negative";
 
 export type AISentimentDistribution = {
-  positive_percent: number;
-  neutral_percent: number;
-  negative_percent: number;
+  positive: number;
+  neutral: number;
+  negative: number;
+};
+export type AIHighlight = {
+  url: string;
+  title: string;
+  author?: string | null;
+  description?: string | null;
+  reason: string
 };
 
 export type AIReport = {
@@ -25,7 +32,7 @@ export type AIReport = {
   sentiment_score: number | null;
   sentiment_distribution: AISentimentDistribution | null;
   main_topics: string[] | null;
-  highlights: string[] | null;
+  highlights: AIHighlight[]| null;
   data_quality_warnings: string[] | null;
   created_at: string | null;
 };
@@ -53,18 +60,18 @@ export function getDominantSentiment(
 ): "positive" | "neutral" | "negative" | null {
   if (!distribution) return null;
 
-  const { positive_percent, neutral_percent, negative_percent } = distribution;
+  const { positive, neutral, negative } = distribution;
   if (
-    !Number.isFinite(positive_percent) ||
-    !Number.isFinite(neutral_percent) ||
-    !Number.isFinite(negative_percent)
+    !Number.isFinite(positive) ||
+    !Number.isFinite(neutral) ||
+    !Number.isFinite(negative)
   ) {
     return null;
   }
 
-  const max = Math.max(positive_percent, neutral_percent, negative_percent);
+  const max = Math.max(positive, neutral, negative);
   if (max <= 0) return null;
-  if (max === positive_percent) return "positive";
-  if (max === negative_percent) return "negative";
+  if (max === positive) return "positive";
+  if (max === negative) return "negative";
   return "neutral";
 }

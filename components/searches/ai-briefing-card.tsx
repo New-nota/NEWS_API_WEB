@@ -1,6 +1,7 @@
 import {
   formatSentimentLabel,
   formatSentimentScore,
+  type AIHighlight,
   type AIReport,
 } from "@/lib/ai-report";
 
@@ -95,16 +96,16 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
 
   const keyPoints = safeArray(aiReport.key_points);
   const topics = safeArray(aiReport.main_topics);
-  const highlights = safeArray(aiReport.highlights);
+  const highlights: AIHighlight[] = Array.isArray(aiReport.highlights)? aiReport.highlights.filter((h): h is AIHighlight => h !== null && typeof h === "object"): [];
   const warnings = safeArray(aiReport.data_quality_warnings);
 
   const sentimentLabel = formatSentimentLabel(aiReport.sentiment_label);
   const sentimentScore = formatSentimentScore(aiReport.sentiment_score);
   const distribution = aiReport.sentiment_distribution;
 
-  const subtitle = [`Summary based on ${aiReport.news_count} news articles`];
+  const subtitle = [`Сводка основана на ${aiReport.news_count} новостных статьях`];
   if (aiReport.model_name) {
-    subtitle.push(`model: ${aiReport.model_provider ? `${aiReport.model_provider}/` : ""}${aiReport.model_name}`);
+    subtitle.push(`Модель ИИ: ${aiReport.model_provider ? `${aiReport.model_provider}/` : ""}${aiReport.model_name}`);
   }
 
   return (
@@ -149,15 +150,15 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
           <div className="stats-grid">
             <article className="stat-card">
               <span>Позитивное</span>
-              <strong>{clampPercent(distribution.positive_percent)}%</strong>
+              <strong>{clampPercent(distribution.positive)}%</strong>
             </article>
             <article className="stat-card">
               <span>Нейтральное</span>
-              <strong>{clampPercent(distribution.neutral_percent)}%</strong>
+              <strong>{clampPercent(distribution.neutral)}%</strong>
             </article>
             <article className="stat-card">
               <span>Негативное</span>
-              <strong>{clampPercent(distribution.negative_percent)}%</strong>
+              <strong>{clampPercent(distribution.negative)}%</strong>
             </article>
           </div>
         </div>
@@ -176,14 +177,19 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
         </div>
       ) : null}
 
-      {highlights.length > 0 ? (
+      {Array.isArray(aiReport.highlights) && aiReport.highlights.filter(Boolean).length > 0 ? (
         <div className="stack">
-          <h3>Основные моменты</h3>
-          <ul>
-            {highlights.map((highlight, index) => (
-              <li key={`${index}-${highlight.slice(0, 32)}`}>{highlight}</li>
-            ))}
-          </ul>
+          <h3>Основная статья</h3>
+          {aiReport.highlights.filter(Boolean).map((h, index) =>(
+            <article className="stat-card" key={index}>
+              <a href={h.url} rel="noreferrer" target="_blank">
+                <strong>{h.title}</strong>
+              </a>
+              {h.author ? <span className="muted">{h.author}</span> : null}
+              {h.description ? <p>{h.description}</p>: null}
+              <span className="muted">{h.reason}</span>
+            </article>
+          ))}
         </div>
       ) : null}
 

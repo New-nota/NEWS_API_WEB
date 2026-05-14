@@ -53,7 +53,6 @@ export function SearchRequestForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const handleTrackingDone = useCallback(() => {
     setTrackingRequestId(null);
@@ -65,24 +64,23 @@ export function SearchRequestForm() {
 
     setIsSubmitting(true);
     setError("");
-    setSuccess("");
 
     const normalizedKeyword = keyword.trim();
 
     if (!normalizedKeyword) {
-      setError("Keyword is required");
+      setError("ключевое слово обязательно");
       setIsSubmitting(false);
       return;
     }
 
     if (limitCount < LIMIT_COUNT_MIN || limitCount > LIMIT_COUNT_MAX) {
-      setError(`limitCount must be between ${LIMIT_COUNT_MIN} and ${LIMIT_COUNT_MAX}`);
+      setError(`лимит новостей должен быть между ${LIMIT_COUNT_MIN} и ${LIMIT_COUNT_MAX}`);
       setIsSubmitting(false);
       return;
     }
 
     if (pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX) {
-      setError(`pageSize must be between ${PAGE_SIZE_MIN} and ${PAGE_SIZE_MAX}`);
+      setError(`размер страницы должен быть между ${PAGE_SIZE_MIN} и ${PAGE_SIZE_MAX}`);
       setIsSubmitting(false);
       return;
     }
@@ -102,7 +100,7 @@ export function SearchRequestForm() {
       const payload = (await response.json().catch(() => null)) as ApiResponse<SearchRequest> | null;
 
       if (!response.ok || !payload || payload.ok === false) {
-        const message = payload && payload.ok === false ? payload.error.message : "Failed to create search request";
+        const message = payload && payload.ok === false ? payload.error.message : "Ошибка создания запроса";
         setError(message);
         return;
       }
@@ -110,12 +108,11 @@ export function SearchRequestForm() {
       const createdRequest = payload.data;
 
       setKeyword("");
-      setSuccess("Запрос создан. Следим за статусом...");
       setTrackingRequestId(createdRequest.id);
 
       router.refresh();
     } catch {
-      setError("Network error. Please try again.");
+      setError("Ошибка сети. Пожалуйста попробуйте снова.");
     } finally {
       setIsSubmitting(false);
     }
@@ -178,12 +175,11 @@ export function SearchRequestForm() {
 
       <div className="filter-actions">
         <button className="button button-primary" disabled={isSubmitting} type="submit">
-          {isSubmitting ? "Submitting..." : "Закинуть в очередь"}
+          {isSubmitting ? "Отправка..." : "Закинуть в очередь"}
         </button>
       </div>
 
       {error ? <p className="alert">{error}</p> : null}
-      {success ? <p className="success-message">{success}</p> : null}
 
       {trackingRequestId ? (
         <SearchRequestStatusTracker

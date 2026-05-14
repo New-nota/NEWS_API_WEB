@@ -136,12 +136,12 @@ export async function getSearchRequestByIdForUser(
         air.model_name,
         air.news_count,
         air.summary,
-        air.key_points,
+        air.main_conclusions,
         air.sentiment_label,
         air.sentiment_score,
         air.sentiment_distribution,
         air.main_topics,
-        air.highlights,
+        air.highlight,
         air.data_quality_warnings,
         air.created_at
       LIMIT 1
