@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "News Dashboard",
-  description: "Web UI for your NewsAPI ETL project",
+  title: "Новостной сервис",
+  description: "Веб UI для NewsAPI ETL проекта",
 };
 
 export default function RootLayout({

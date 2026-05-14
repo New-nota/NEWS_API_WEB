@@ -62,7 +62,7 @@ export function FilterForm({ current, options }: FilterFormProps) {
       </div>
 
       <div className="field">
-        <label htmlFor="limit">Количество статей на страницу</label>
+        <label htmlFor="limit">статьи на страницу</label>
         <select defaultValue={String(current.limit)} id="limit" name="limit">
           {[10, 20, 50, 100].map((value) => (
             <option key={value} value={value}>
@@ -77,7 +77,7 @@ export function FilterForm({ current, options }: FilterFormProps) {
           Применить фильтр
         </button>
         <Link className="button button-secondary" href="/dashboard">
-          ХАЛЯ ОТМЕНА
+          отмена
         </Link>
       </div>
     </form>

@@ -1,59 +1,31 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { FilterForm } from "@/components/dashboard/filter-form";
-import { NewsTable } from "@/components/dashboard/news-table";
 import { SearchRequestForm } from "@/components/dashboard/search-request-form";
 import { getNewsApiKeyStatusForUser } from "@/lib/user-news-api-key";
-import { getUserNewsFilterOptions, listNewsForUser } from "@/lib/news";
-import { parseNewsFiltersFromSearchParams, type ParsedNewsFilters } from "@/lib/news-filters";
 import { listSearchRequestsForUser } from "@/lib/searches";
 import { getCurrentAppUserId } from "@/lib/users";
 import { DashboardAutoRefresh } from "@/components/dashboard/dashboard-auto-refresh";
 
-type DashboardSearchParams = Record<string, string | string[] | undefined>;
 
-function buildDashboardQuery(filters: ParsedNewsFilters, overrides: Partial<ParsedNewsFilters>) {
-  const merged = { ...filters, ...overrides };
-  const params = new URLSearchParams();
-
-  if (merged.q) params.set("q", merged.q);
-  if (merged.keyword) params.set("keyword", merged.keyword);
-  if (merged.author) params.set("author", merged.author);
-  if (merged.language) params.set("languag", merged.language);
-  params.set("page", String(merged.page));
-  params.set("limit", String(merged.limit));
-
-  return `/dashboard?${params.toString()}`;
-}
-
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams?: Promise<DashboardSearchParams>;
-}) {
+export default async function DashboardPage() {
   const appUserId = await getCurrentAppUserId();
   if (!appUserId) redirect("/login");
 
-  const resolvedSearchParams = (await searchParams) ?? {};
-  const filters = parseNewsFiltersFromSearchParams(resolvedSearchParams);
 
-  const [newsData, searches, filterOptions, newsApiKeyStatus] = await Promise.all([
-    listNewsForUser(appUserId, filters),
+
+  const [ searches, newsApiKeyStatus] = await Promise.all([
     listSearchRequestsForUser(appUserId, 20),
-    getUserNewsFilterOptions(appUserId),
     getNewsApiKeyStatusForUser(appUserId)
   ]);
   const hasActiveRequests = searches.some(
   (item) => item.status === "queued" || item.status === "running",);
 
-  const hasPrevPage = filters.page > 1;
-  const hasNextPage = filters.page < newsData.totalPages;
 
   return (
     <div className="stack">
       <DashboardAutoRefresh hasActiveRequests={hasActiveRequests} />
       <section className="card stack">
-        <h1>ШОПОНОВОСТЯМ</h1>
+        <h1>Какие новости сегодня?</h1>
         {newsApiKeyStatus.hasNewsApiKey ? (
           <SearchRequestForm />
         ) : (
@@ -67,7 +39,7 @@ export default async function DashboardPage({
       <section className="card stack">
         <h2>Мои запросы на поиск</h2>
         {searches.length === 0 ? (
-          <p className="muted">Пока нема запросов.</p>
+          <p className="muted">Пока нет запросов.</p>
         ) : (
           <div className="stack">
             {searches.map((item) => (
@@ -77,57 +49,17 @@ export default async function DashboardPage({
                   <span className={`status-badge status-${item.status}`}>{item.status}</span>
                 </div>
                 <div className="muted">
-                  язык = {item.language}, размер страницы = {item.page_size}, лимит новостей = {item.limit_count}
+                  язык: {item.language}, размер страницы: {item.page_size}, лимит новостей: {item.limit_count}
                 </div>
                 {item.error_text ? <p className="alert">{item.error_text}</p> : null}
                 <Link className="button button-secondary" href={`/searches/${item.id}`}>
-                  Открыть AI Briefing
+                  Открыть ИИ сводку
                 </Link>
               </article>
             ))}
           </div>
         )}
-      </section>
-
-      <section className="card stack">
-        <div className="section-header">
-          <h2>Мои новости</h2>
-          <p className="muted">
-            Тотал: {newsData.total} - страница {filters.page} / {newsData.totalPages}
-          </p>
-        </div>
-
-        <FilterForm
-          current={{
-            q: filters.q,
-            keyword: filters.keyword,
-            author: filters.author,
-            language: filters.language,
-            limit: filters.limit,
-          }}
-          options={filterOptions}
-        />
-
-        <NewsTable rows={newsData.rows} />
-
-        <div className="pagination">
-          {hasPrevPage ? (
-            <Link className="button button-secondary" href={buildDashboardQuery(filters, { page: filters.page - 1 })}>
-              Пердыдушая
-            </Link>
-          ) : (
-            <span className="button button-secondary disabled">Пердыдущая</span>
-          )}
-
-          {hasNextPage ? (
-            <Link className="button button-secondary" href={buildDashboardQuery(filters, { page: filters.page + 1 })}>
-              Следущая
-            </Link>
-          ) : (
-            <span className="button button-secondary disabled">Следущая</span>
-          )}
-        </div>
-      </section>
+      </section> 
     </div>
   );
 }

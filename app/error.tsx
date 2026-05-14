@@ -16,7 +16,7 @@ export default function GlobalError({
   return (
     <main className="auth-page">
       <section className="auth-card">
-        <h1>ШОТО тут не так</h1>
+        <h1>Что-то тут не так</h1>
         <p className="muted">
           Поиск не смог. Пожалуйста, нажмите "АААА" если не помогло, то это грустно.
         </p>

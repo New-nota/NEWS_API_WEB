@@ -90,6 +90,7 @@ export default async function SearchRequestDetailsPage({
           <h2>Новости запроса</h2>
           <p className="muted">Всего: {newsData.total}</p>
         </div>
+
         <NewsTable rows={newsData.rows} />
         {newsData.total > REQUEST_NEWS_LIMIT ? (
           <p className="muted">

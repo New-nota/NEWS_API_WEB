@@ -164,7 +164,7 @@ export function SearchRequestForm() {
       </div>
 
       <div className="field">
-        <label htmlFor="page-size-input">Размер новостей на страницу, при плохом интернете лучше 20</label>
+        <label htmlFor="page-size-input">Размер новостей на страницу (при плохом интернете лучше 20)</label>
         <input
           id="page-size-input"
           max={PAGE_SIZE_MAX}

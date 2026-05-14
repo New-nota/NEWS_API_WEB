@@ -36,7 +36,7 @@ export function NewsTable({ rows }: NewsTableProps) {
   if (rows.length === 0) {
     return (
       <div className="empty-state">
-        Тут ничего ни светлого ни фильтрованного. Сохздайте запрос или примените другой фильтр
+        Ничего не смогли подобрать. Сохздайте запрос или примените другой фильтр
       </div>
     );
   }
@@ -53,7 +53,7 @@ export function NewsTable({ rows }: NewsTableProps) {
             <th>Время публикации</th>
             <th>Время запроса</th>
             <th>Источник</th>
-            <th>СсылОчка</th>
+            <th>Ссылка</th>
           </tr>
         </thead>
         <tbody>

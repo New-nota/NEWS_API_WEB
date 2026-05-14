@@ -31,9 +31,9 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
   if (searchStatus === "queued") {
     return (
       <section className="card stack">
-        <h2>AI Briefing</h2>
+        <h2>Сводка от ИИ</h2>
         <StateMessage tone="muted">
-          AI briefing will appear after the request is processed.
+          Сводка от ИИ появится когда создастся запрос.
         </StateMessage>
       </section>
     );
@@ -42,9 +42,9 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
   if (searchStatus === "running") {
     return (
       <section className="card stack">
-        <h2>AI Briefing</h2>
+        <h2>ИИ сводка</h2>
         <StateMessage tone="muted">
-          News are being processed. AI briefing will be created after article loading.
+          Новости в процессе обработки. ИИ сводка появится после загрузки статей.
         </StateMessage>
       </section>
     );
@@ -53,9 +53,9 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
   if (searchStatus === "success" && aiReport === null) {
     return (
       <section className="card stack">
-        <h2>AI Briefing</h2>
+        <h2>ИИ сводка</h2>
         <StateMessage tone="muted">
-          AI briefing is not available for this request yet.
+          ИИ сводка пока не доступна по данному запросу.
         </StateMessage>
       </section>
     );
@@ -64,8 +64,8 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
   if (aiReport === null) {
     return (
       <section className="card stack">
-        <h2>AI Briefing</h2>
-        <StateMessage tone="muted">No AI briefing for this request.</StateMessage>
+        <h2>ИИ сводка</h2>
+        <StateMessage tone="muted"> ИИ сводка не доступна для данного запроса </StateMessage>
       </section>
     );
   }
@@ -73,9 +73,9 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
   if (aiReport.status === "pending") {
     return (
       <section className="card stack">
-        <h2>AI Briefing</h2>
+        <h2>ИИ сводка</h2>
         <StateMessage tone="muted">
-          AI briefing is being generated. Refresh the page in a moment.
+          ИИ сводка генерируется. Обновите страницу.
         </StateMessage>
       </section>
     );
@@ -84,9 +84,9 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
   if (aiReport.status === "failed") {
     return (
       <section className="card stack">
-        <h2>AI Briefing</h2>
+        <h2>ИИ сводка</h2>
         <StateMessage tone="alert">
-          AI briefing could not be generated. News were saved successfully.
+          ИИ сводка не сгенерирована. Нет новостей.
         </StateMessage>
         {aiReport.error_text ? <p className="muted">Reason: {aiReport.error_text}</p> : null}
       </section>
@@ -111,7 +111,7 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
     <section className="card stack">
       <div className="section-header">
         <div>
-          <h2>AI Briefing</h2>
+          <h2>ИИ сводка</h2>
           <p className="muted">{subtitle.join(" • ")}</p>
         </div>
       </div>
@@ -119,12 +119,12 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
       {aiReport.summary ? (
         <p>{aiReport.summary}</p>
       ) : (
-        <p className="muted">Summary is not available for this report.</p>
+        <p className="muted">ИИ обзор не доступен для этого запроса</p>
       )}
 
       {keyPoints.length > 0 ? (
         <div className="stack">
-          <h3>Key points</h3>
+          <h3>Ключевые моменты</h3>
           <ul>
             {keyPoints.map((point, index) => (
               <li key={`${index}-${point.slice(0, 32)}`}>{point}</li>
@@ -135,7 +135,7 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
 
       {(sentimentLabel || sentimentScore) && (
         <div className="stack">
-          <h3>Sentiment</h3>
+          <h3>Настроение</h3>
           <div className="ranking-row">
             <span>{sentimentLabel ?? "Unknown"}</span>
             {sentimentScore ? <strong>{sentimentScore}</strong> : null}
@@ -145,18 +145,18 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
 
       {distribution ? (
         <div className="stack">
-          <h3>Sentiment distribution</h3>
+          <h3>Распределение настроений</h3>
           <div className="stats-grid">
             <article className="stat-card">
-              <span>Positive</span>
+              <span>Позитивное</span>
               <strong>{clampPercent(distribution.positive_percent)}%</strong>
             </article>
             <article className="stat-card">
-              <span>Neutral</span>
+              <span>Нейтральное</span>
               <strong>{clampPercent(distribution.neutral_percent)}%</strong>
             </article>
             <article className="stat-card">
-              <span>Negative</span>
+              <span>Негативное</span>
               <strong>{clampPercent(distribution.negative_percent)}%</strong>
             </article>
           </div>
@@ -165,7 +165,7 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
 
       {topics.length > 0 ? (
         <div className="stack">
-          <h3>Main topics</h3>
+          <h3>Главные темы</h3>
           <div className="topic-badges">
             {topics.map((topic) => (
               <span className="badge" key={topic}>
@@ -178,7 +178,7 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
 
       {highlights.length > 0 ? (
         <div className="stack">
-          <h3>Highlights</h3>
+          <h3>Основные моменты</h3>
           <ul>
             {highlights.map((highlight, index) => (
               <li key={`${index}-${highlight.slice(0, 32)}`}>{highlight}</li>
@@ -188,7 +188,7 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
       ) : null}
 
       <div className="stack">
-        <h3>Data quality &amp; limitations</h3>
+        <h3>Качество данных и ограничения</h3>
         <ul>
           {(warnings.length > 0 ? warnings : DEFAULT_WARNINGS).map((warning, index) => (
             <li key={`${index}-${warning.slice(0, 32)}`}>{warning}</li>

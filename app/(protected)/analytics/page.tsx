@@ -12,22 +12,22 @@ export default async function AnalyticsPage() {
   return (
     <div className="stack">
       <section className="card stack">
-        <h1>АНАЛитика</h1>
+        <h1>ААААналитика</h1>
         <div className="stats-grid">
           <article className="stat-card">
             <span>Общее количество новостей</span>
             <strong>{data.summary.total_user_news}</strong>
           </article>
           <article className="stat-card">
-            <span>уникальные статьи</span>
+            <span>Уникальные статьи</span>
             <strong>{data.summary.unique_articles}</strong>
           </article>
           <article className="stat-card">
-            <span>успешный запрос</span>
+            <span>Успешный запрос</span>
             <strong>{data.requests.success_count}</strong>
           </article>
           <article className="stat-card">
-            <span>Отклоненные запросы</span>
+            <span>Отклоненные новости</span>
             <strong>{data.requests.total_rejected_articles}</strong>
           </article>
         </div>
@@ -36,7 +36,7 @@ export default async function AnalyticsPage() {
       <section className="card stack">
         <h2>Популярные ключесвые слова</h2>
         {data.keywords.length === 0 ? (
-          <p className="muted">Пока таких нема</p>
+          <p className="muted">Пока таких нет</p>
         ) : (
           <div className="ranking-list">
             {data.keywords.map((item) => (
@@ -52,7 +52,7 @@ export default async function AnalyticsPage() {
       <section className="card stack">
         <h2>Популярные источники</h2>
         {data.sources.length === 0 ? (
-          <p className="muted">пока нема аналитики.</p>
+          <p className="muted">пока нет аналитики.</p>
         ) : (
           <div className="ranking-list">
             {data.sources.map((item) => (

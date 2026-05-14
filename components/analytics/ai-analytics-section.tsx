@@ -36,29 +36,29 @@ export function AIAnalyticsSection({ ai }: AIAnalyticsSectionProps) {
   return (
     <>
       <section className="card stack">
-        <h2>AI Analytics</h2>
+        <h2>ИИ обзоры</h2>
         {!hasAnyReport ? (
-          <p className="muted">No AI briefings yet. Create a search request to get started.</p>
+          <p className="muted">Пока нет ИИ сводок. Сделайте первый запрос чтобы начать.</p>
         ) : null}
 
         <div className="stats-grid">
           <article className="stat-card">
-            <span>Total AI reports</span>
+            <span>Всего ИИ обзоров</span>
             <strong>{ai.total_reports}</strong>
           </article>
           <article className="stat-card">
-            <span>Failed AI reports</span>
+            <span>Неполучившиеся ИИ обзоры</span>
             <strong>{ai.failed_reports}</strong>
           </article>
           <article className="stat-card">
-            <span>Average sentiment score</span>
+            <span>Средний балл настроений</span>
             <strong>{formatAvg(ai.avg_sentiment_score)}</strong>
           </article>
         </div>
       </section>
 
       <section className="card stack">
-        <h2>Sentiment breakdown</h2>
+        <h2>Распределение настроений</h2>
         <div className="ranking-list">
           {SENTIMENT_ROWS.map(({ key, field }) => (
             <div className="ranking-row" key={key}>
@@ -70,9 +70,9 @@ export function AIAnalyticsSection({ ai }: AIAnalyticsSectionProps) {
       </section>
 
       <section className="card stack">
-        <h2>Top AI topics</h2>
+        <h2>Популярныы ИИ заголовки</h2>
         {ai.top_topics.length === 0 ? (
-          <p className="muted">No topics extracted yet.</p>
+          <p className="muted">Пока нет заголовков.</p>
         ) : (
           <div className="ranking-list">
             {ai.top_topics.map((item) => (
