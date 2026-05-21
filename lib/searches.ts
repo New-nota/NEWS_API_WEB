@@ -1,5 +1,6 @@
 import { pool } from "@/lib/db";
 import type { AIReport } from "@/lib/ai-report";
+import { AppError } from "@/lib/app-error";
 
 export type SearchRequest = {
   id: number;
@@ -9,6 +10,7 @@ export type SearchRequest = {
   limit_count: number;
   page_size: number;
   status: string;
+  is_trial: boolean;
   error_text: string | null;
   created_at: string;
   started_at: string | null;
@@ -60,35 +62,71 @@ const AI_REPORT_JSON_SQL = `
   END AS ai_report
 `;
 
-export async function createSearchRequest(input: CreateSearchRequestInput): Promise<SearchRequest> {
-  const { rows } = await pool.query<SearchRequest>(
-    `
-      INSERT INTO search_requests (
-        user_id,
-        keyword,
-        language,
-        limit_count,
-        page_size,
-        status
-      )
-      VALUES ($1, $2, $3, $4, $5, 'queued')
-      RETURNING
-        id,
-        user_id,
-        keyword,
-        language,
-        limit_count,
-        page_size,
-        status,
-        error_text,
-        created_at::text,
-        started_at::text,
-        finished_at::text
-    `,
-    [input.userId, input.keyword, input.language ?? "ru", input.limitCount, input.pageSize],
-  );
+const TRIAL_LIMIT = parseInt(process.env.TRIAL_REQUEST_LIMIT ?? "3", 10);
 
-  return rows[0];
+export async function createSearchRequest(input: CreateSearchRequestInput): Promise<SearchRequest> {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // FOR UPDATE лочит строку — без этого два параллельных запроса
+    // могут оба прочитать trial_uses=2 и оба пройти, дав пользователю 4 trial
+    const userRow = await client.query<{ trial_uses: number }>(
+      "SELECT trial_uses FROM app_users WHERE id = $1 FOR UPDATE",
+      [input.userId],
+    );
+    const trialUses = userRow.rows[0].trial_uses;
+
+    // valid и exhausted = ключ есть и рабочий
+    // pending_validation и invalid = ключа фактически нет, trial ещё можно тратить
+    const keyRow = await client.query<{ status: string }>(
+      "SELECT status FROM users_keys WHERE user_id = $1 AND service = 'news_api'",
+      [input.userId],
+    );
+    const keyStatus = keyRow.rows[0]?.status ?? null;
+    const hasUsableKey = keyStatus === "valid" || keyStatus === "exhausted";
+
+    let isTrial: boolean;
+
+    if (hasUsableKey) {
+      isTrial = false;
+    } else if (trialUses < TRIAL_LIMIT) {
+      isTrial = true;
+      await client.query(
+        "UPDATE app_users SET trial_uses = trial_uses + 1 WHERE id = $1",
+        [input.userId],
+      );
+    } else {
+      throw new AppError(
+        403,
+        `Trial requests exhausted (${TRIAL_LIMIT}/${TRIAL_LIMIT}). Please add your NewsAPI key.`,
+        "NEWS_API_KEY_REQUIRED",
+      );
+    }
+
+    const { rows } = await client.query<SearchRequest>(
+      `
+        INSERT INTO search_requests (
+          user_id, keyword, language, limit_count, page_size, status, is_trial
+        )
+        VALUES ($1, $2, $3, $4, $5, 'queued', $6)
+        RETURNING
+          id, user_id, keyword, language, limit_count, page_size,
+          status, is_trial, error_text,
+          created_at::text, started_at::text, finished_at::text
+      `,
+      [input.userId, input.keyword, input.language ?? "ru", input.limitCount, input.pageSize, isTrial],
+    );
+
+    await client.query("COMMIT");
+    return rows[0];
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 export async function getSearchRequestByIdForUser(

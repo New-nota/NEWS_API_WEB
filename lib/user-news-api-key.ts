@@ -9,6 +9,8 @@ export type NewsApiKeyStatus = {
   hasNewsApiKey: boolean;
   last4: string | null;
   updatedAt: string | null;
+  status: "pending_validation" | "validating" | "valid" | "invalid" | "exhausted" | null;
+  validationError: string | null;
 };
 
 type EncryptedUserKey = {
@@ -67,12 +69,14 @@ export function decryptUserKey(row: UserKeyRow): string {
 }
 
 export async function getNewsApiKeyStatusForUser(userId: number): Promise<NewsApiKeyStatus> {
-  const { rows } = await pool.query<NewsApiKeyStatus>(
+  const { rows } = await pool.query(
     `
       SELECT
         TRUE AS "hasNewsApiKey",
         key_last4 AS "last4",
-        updated_at::text AS "updatedAt"
+        updated_at::text AS "updatedAt",
+        status AS "status",
+        validation_error AS "validationError"
       FROM users_keys
       WHERE user_id = $1 AND service = $2
       LIMIT 1
@@ -80,7 +84,13 @@ export async function getNewsApiKeyStatusForUser(userId: number): Promise<NewsAp
     [userId, NEWSAPI_SERVICE],
   );
 
-  return rows[0] ?? { hasNewsApiKey: false, last4: null, updatedAt: null };
+  return rows[0] ?? {
+    hasNewsApiKey: false,
+    last4: null,
+    updatedAt: null,
+    status: null,
+    validationError: null,
+  };
 }
 
 export async function hasNewsApiKeyForUser(userId: number): Promise<boolean> {
@@ -105,40 +115,47 @@ export async function saveNewsApiKeyForUser(
   const encrypted = encryptUserKey(apiKey);
   const last4 = apiKey.slice(-4);
 
-  const { rows } = await pool.query<NewsApiKeyStatus>(
-    `
-      INSERT INTO users_keys (
-        user_id,
-        service,
-        encrypted_key,
-        iv,
-        auth_tag,
-        key_last4,
-        updated_at
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, NOW())
-      ON CONFLICT (user_id, service) DO UPDATE
-      SET
-        encrypted_key = EXCLUDED.encrypted_key,
-        iv = EXCLUDED.iv,
-        auth_tag = EXCLUDED.auth_tag,
-        key_last4 = EXCLUDED.key_last4,
-        updated_at = NOW()
-      RETURNING
-        TRUE AS "hasNewsApiKey",
-        key_last4 AS "last4",
-        updated_at::text AS "updatedAt"
-    `,
-    [
-      userId,
-      NEWSAPI_SERVICE,
-      encrypted.encryptedKey,
-      encrypted.iv,
-      encrypted.authTag,
-      last4,
-    ],
-  );
-
+const { rows } = await pool.query<NewsApiKeyStatus>(
+  `
+    INSERT INTO users_keys (
+      user_id,
+      service,
+      encrypted_key,
+      iv,
+      auth_tag,
+      key_last4,
+      status,
+      validation_error,
+      validated_at,
+      updated_at
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, 'pending_validation', NULL, NULL, NOW())
+    ON CONFLICT (user_id, service) DO UPDATE
+    SET
+      encrypted_key = EXCLUDED.encrypted_key,
+      iv = EXCLUDED.iv,
+      auth_tag = EXCLUDED.auth_tag,
+      key_last4 = EXCLUDED.key_last4,
+      status = 'pending_validation',
+      validation_error = NULL,
+      validated_at = NULL,
+      updated_at = NOW()
+    RETURNING
+  TRUE AS "hasNewsApiKey",
+  key_last4 AS "last4",
+  updated_at::text AS "updatedAt",
+  status AS "status",
+  validation_error AS "validationError"
+  `,
+  [
+    userId,
+    NEWSAPI_SERVICE,
+    encrypted.encryptedKey,
+    encrypted.iv,
+    encrypted.authTag,
+    last4,
+  ],
+);
   return rows[0];
 }
 
@@ -151,7 +168,13 @@ export async function deleteNewsApiKeyForUser(userId: number): Promise<NewsApiKe
     [userId, NEWSAPI_SERVICE],
   );
 
-  return { hasNewsApiKey: false, last4: null, updatedAt: null };
+  return {
+  hasNewsApiKey: false,
+  last4: null,
+  updatedAt: null,
+  status: null,           
+  validationError: null,  
+};
 }
 
 export async function getDecryptedNewsApiKeyForUser(userId: number): Promise<string | null> {

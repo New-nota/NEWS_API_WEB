@@ -3,11 +3,16 @@
 import { useCallback, type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SearchRequestStatusTracker } from "@/components/dashboard/search-request-status-tracker";
+import { type TrialStatus } from "@/lib/users";
 
 const LIMIT_COUNT_MIN = 1;
 const LIMIT_COUNT_MAX = 500;
 const PAGE_SIZE_MIN = 1;
 const PAGE_SIZE_MAX = 100;
+
+type Props = {
+  trialStatus: TrialStatus
+}
 
 type ApiSuccess<T> = {
   ok: true;
@@ -41,7 +46,7 @@ type SearchRequest = {
   finished_at: string | null;
 };
 
-export function SearchRequestForm() {
+export function SearchRequestForm({trialStatus}: Props) {
   const router = useRouter();
 
   const [keyword, setKeyword] = useState("");
@@ -173,11 +178,23 @@ export function SearchRequestForm() {
         />
       </div>
 
-      <div className="filter-actions">
-        <button className="button button-primary" disabled={isSubmitting} type="submit">
-          {isSubmitting ? "Отправка..." : "Закинуть в очередь"}
-        </button>
-      </div>
+      {!trialStatus.hasUsableKey && (
+  <p className="alert">
+    {trialStatus.trialsRemaining > 0
+      ? `Запросов без использования вашего apikey осталось: ${trialStatus.trialsRemaining} из ${trialStatus.trialLimit}`
+      : "Пробные запросы закончились. Добавьте свой NewsAPI ключ в профиле."}
+  </p>
+)}
+
+<div className="filter-actions">
+  <button
+    className="button button-primary"
+    disabled={isSubmitting || (!trialStatus.hasUsableKey && trialStatus.trialsRemaining === 0)}
+    type="submit"
+  >
+    {isSubmitting ? "Отправка..." : "Закинуть в очередь"}
+  </button>
+</div>
 
       {error ? <p className="alert">{error}</p> : null}
 

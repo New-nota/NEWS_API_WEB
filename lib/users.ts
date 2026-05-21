@@ -9,6 +9,8 @@ export type AppUser = {
   image_url: string | null;
   created_at: string;
   last_login_at: string;
+  trial_uses: number; 
+
 };
 
 const getCachedAuthSession = cache(async () => {
@@ -118,4 +120,47 @@ export async function getCurrentAppUser(): Promise<AppUser | null> {
   const appUserId = await getCurrentAppUserId();
   if (!appUserId) return null;
   return getUserById(appUserId);
+}
+
+const TRIAL_LIMIT = parseInt(process.env.TRIAL_REQUEST_LIMIT ?? "3", 10);
+
+export type KeyStatus =
+  | "pending_validation"
+  | "validating"
+  | "valid"
+  | "invalid"
+  | "exhausted"
+  | null;
+
+export type TrialStatus = {
+  trialUses: number;
+  trialLimit: number;
+  trialsRemaining: number;
+  hasUsableKey: boolean;
+  keyStatus: KeyStatus;
+};
+
+export async function getTrialStatus(appUserId: number): Promise<TrialStatus> {
+  const { rows } = await pool.query<{ trial_uses: number; key_status: string | null }>(
+    `
+      SELECT u.trial_uses,
+             k.status AS key_status
+      FROM app_users u
+      LEFT JOIN users_keys k ON k.user_id = u.id AND k.service = 'news_api'
+      WHERE u.id = $1
+    `,
+    [appUserId],
+  );
+
+  const row = rows[0];
+  const keyStatus = (row.key_status ?? null) as KeyStatus;
+  const hasUsableKey = keyStatus === "valid" || keyStatus === "exhausted";
+
+  return {
+    trialUses: row.trial_uses,
+    trialLimit: TRIAL_LIMIT,
+    trialsRemaining: Math.max(0, TRIAL_LIMIT - row.trial_uses),
+    hasUsableKey,
+    keyStatus,
+  };
 }

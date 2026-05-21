@@ -9,7 +9,10 @@ type GoogleProfile = {
 };
 
 export const authConfig: NextAuthConfig = {
-  providers: [Google],
+  providers: [
+  Google({
+    checks: process.env.NODE_ENV === "production" ? ["pkce", "state"] : ["state"],
+  }),],
   pages: {
     signIn: "/login",
   },

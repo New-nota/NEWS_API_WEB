@@ -1,36 +1,36 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SearchRequestForm } from "@/components/dashboard/search-request-form";
-import { getNewsApiKeyStatusForUser } from "@/lib/user-news-api-key";
 import { listSearchRequestsForUser } from "@/lib/searches";
-import { getCurrentAppUserId } from "@/lib/users";
+import { getCurrentAppUserId, getTrialStatus } from "@/lib/users";
 import { DashboardAutoRefresh } from "@/components/dashboard/dashboard-auto-refresh";
-
 
 export default async function DashboardPage() {
   const appUserId = await getCurrentAppUserId();
   if (!appUserId) redirect("/login");
 
-
-
-  const [ searches, newsApiKeyStatus] = await Promise.all([
+  const [searches, trialStatus] = await Promise.all([
     listSearchRequestsForUser(appUserId, 20),
-    getNewsApiKeyStatusForUser(appUserId)
+    getTrialStatus(appUserId),
   ]);
-  const hasActiveRequests = searches.some(
-  (item) => item.status === "queued" || item.status === "running",);
 
+  const hasActiveRequests = searches.some(
+    (item) => item.status === "queued" || item.status === "running",
+  );
+
+  // показываем форму если есть рабочий ключ ИЛИ есть trial запросы
+  const canMakeRequests = trialStatus.hasUsableKey || trialStatus.trialsRemaining > 0;
 
   return (
     <div className="stack">
       <DashboardAutoRefresh hasActiveRequests={hasActiveRequests} />
       <section className="card stack">
         <h1>Какие новости сегодня?</h1>
-        {newsApiKeyStatus.hasNewsApiKey ? (
-          <SearchRequestForm />
+        {canMakeRequests ? (
+          <SearchRequestForm trialStatus={trialStatus} />
         ) : (
           <div className="alert">
-            Чтобы создавать запросы на новости, сначала добавь NewsAPI key в{" "}
+            Пробные запросы закончились. Добавьте свой NewsAPI ключ в{" "}
             <Link href="/profile">профиле</Link>.
           </div>
         )}
@@ -59,7 +59,7 @@ export default async function DashboardPage() {
             ))}
           </div>
         )}
-      </section> 
+      </section>
     </div>
   );
 }

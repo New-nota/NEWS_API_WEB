@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { NewsApiKeyStatus } from "@/lib/user-news-api-key";
 
@@ -34,6 +34,42 @@ export function NewsApiKeyForm({ initialStatus }: Props) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    const isPending =
+      status.status === "pending_validation" || status.status === "validating";
+
+    if (isPending && !pollingRef.current) {
+      pollingRef.current = setInterval(async () => {
+  const res = await fetch("/api/profile/news-api-key");
+  const payload = (await res.json().catch(() => null)) as ApiResponse<NewsApiKeyStatus> | null;
+  if (payload?.ok) {
+    setStatus(payload.data);
+    const stillPending =
+      payload.data.status === "pending_validation" ||
+      payload.data.status === "validating";
+    if (!stillPending && pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+      setSuccess("");  // ← добавить сюда
+    }
+  }
+}, 3000);
+    }
+
+    if (!isPending && pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [status.status]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -64,14 +100,17 @@ export function NewsApiKeyForm({ initialStatus }: Props) {
       const payload = (await response.json().catch(() => null)) as ApiResponse<NewsApiKeyStatus> | null;
 
       if (!response.ok || !payload || payload.ok === false) {
-        const message = payload && payload.ok === false ? payload.error.message : "Не удалось сохранить ключ";
+        const message =
+          payload && payload.ok === false
+            ? payload.error.message
+            : "Не удалось сохранить ключ";
         setError(message);
         return;
       }
 
       setApiKey("");
       setStatus(payload.data);
-      setSuccess("Ключ сохранён");
+      setSuccess("Ключ сохранён, проверяем...");
       router.refresh();
     } catch {
       setError("Ошибка сети. Попробуй ещё раз.");
@@ -93,7 +132,10 @@ export function NewsApiKeyForm({ initialStatus }: Props) {
       const payload = (await response.json().catch(() => null)) as ApiResponse<NewsApiKeyStatus> | null;
 
       if (!response.ok || !payload || payload.ok === false) {
-        const message = payload && payload.ok === false ? payload.error.message : "Не удалось удалить ключ";
+        const message =
+          payload && payload.ok === false
+            ? payload.error.message
+            : "Не удалось удалить ключ";
         setError(message);
         return;
       }
@@ -110,15 +152,25 @@ export function NewsApiKeyForm({ initialStatus }: Props) {
 
   return (
     <form className="stack" onSubmit={onSubmit}>
+
+      {/* статус ключа */}
       {status.hasNewsApiKey ? (
-        <p className="success-message">
-          Сейчас ключ сохранён. Последние 4 символа: {status.last4}
-        </p>
-      ) : (
-        <p className="alert">
-          Ключ ещё не добавлен. Без него нельзя создавать запросы на новости.
-        </p>
-      )}
+  <div className="stack">
+    {status.status === "pending_validation" || status.status === "validating" ? (
+      <p className="muted">⏳ Проверяем ключ... последние 4 символа: {status.last4}</p>
+    ) : status.status === "valid" ? (
+      <p className="success-message">✓ Ключ работает. Последние 4 символа: {status.last4}</p>
+    ) : status.status === "exhausted" ? (
+      <p className="alert">⚠ Ключ работает, но ваши запросы на сегодня закончились. Последние 4 символа: {status.last4}</p>
+    ) : status.status === "invalid" ? (
+      <p className="alert">✗ Ключ невалиден: {status.validationError}</p>
+    ) : null}
+  </div>
+) : (
+  <p className="alert">
+    Ключ ещё не добавлен. Без него нельзя создавать запросы на новости.
+  </p>
+)}
 
       <div className="field">
         <label htmlFor="news-api-key-input">NewsAPI key</label>
