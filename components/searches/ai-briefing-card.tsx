@@ -194,7 +194,10 @@ export function AIBriefingCard({ aiReport, searchStatus }: AIBriefingCardProps) 
       ) : null}
 
       <div className="stack">
-        <h3>Качество данных и ограничения</h3>
+        <h3 className="h3-with-mascot">
+          <img src="/mascot-skeptical.svg" width="22" height="22" alt="" />
+          Качество данных и ограничения
+        </h3>
         <ul>
           {(warnings.length > 0 ? warnings : DEFAULT_WARNINGS).map((warning, index) => (
             <li key={`${index}-${warning.slice(0, 32)}`}>{warning}</li>

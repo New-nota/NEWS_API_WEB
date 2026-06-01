@@ -43,18 +43,24 @@ export default async function SearchRequestDetailsPage({
 
   return (
     <div className="stack">
-      <section className="card stack">
-        <div className="section-header">
-          <div>
-            <h1>Запрос #{searchRequest.id}</h1>
-            <p className="muted">
-              Слово: <strong>{searchRequest.keyword}</strong> · язык {searchRequest.language} · лимит{" "}
-              {searchRequest.limit_count} · размер страницы {searchRequest.page_size}
-            </p>
-          </div>
+      <header className="page-intro">
+        <p className="section-title">запрос / детали</p>
+        <h1>
+          #{searchRequest.id}
           <span className={`status-badge status-${searchRequest.status}`}>{searchRequest.status}</span>
-        </div>
+        </h1>
+        <p className="meta">
+          <span>слово: {searchRequest.keyword}</span>
+          <span className="sep">·</span>
+          <span>язык {searchRequest.language}</span>
+          <span className="sep">·</span>
+          <span>лимит {searchRequest.limit_count}</span>
+          <span className="sep">·</span>
+          <span>стр. {searchRequest.page_size}</span>
+        </p>
+      </header>
 
+      <section className="card stack">
         {searchRequest.error_text ? <p className="alert">{searchRequest.error_text}</p> : null}
 
         <div className="stats-grid">

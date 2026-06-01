@@ -24,8 +24,13 @@ export default async function DashboardPage() {
   return (
     <div className="stack">
       <DashboardAutoRefresh hasActiveRequests={hasActiveRequests} />
-      <section className="card stack">
+
+      <header className="page-intro">
+        <p className="section-title">очередь / поиск</p>
         <h1>Какие новости сегодня?</h1>
+      </header>
+
+      <section className="card stack">
         {canMakeRequests ? (
           <SearchRequestForm trialStatus={trialStatus} />
         ) : (
@@ -37,26 +42,46 @@ export default async function DashboardPage() {
       </section>
 
       <section className="card stack">
-        <h2>Мои запросы на поиск</h2>
+        <header className="section-header">
+          <h2>Мои запросы на поиск</h2>
+        </header>
         {searches.length === 0 ? (
-          <p className="muted">Пока нет запросов.</p>
+          <div className="state-block is-empty">
+            <img src="/mascot-sleeping.svg" width="64" height="64" alt="" />
+            <div className="state-copy">
+              <p className="state-title">Пока тихо. Ни одного запроса.</p>
+              <div className="state-sub">создай запрос выше</div>
+            </div>
+          </div>
         ) : (
           <div className="stack">
-            {searches.map((item) => (
-              <article className="request-card" key={item.id}>
-                <div>
-                  <strong>{item.keyword}</strong>
-                  <span className={`status-badge status-${item.status}`}>{item.status}</span>
-                </div>
-                <div className="muted">
-                  язык: {item.language}, размер страницы: {item.page_size}, лимит новостей: {item.limit_count}
-                </div>
-                {item.error_text ? <p className="alert">{item.error_text}</p> : null}
-                <Link className="button button-secondary" href={`/searches/${item.id}`}>
-                  Открыть ИИ сводку
-                </Link>
-              </article>
-            ))}
+            {searches.map((item) => {
+              const cardModifier =
+                item.status === "queued" || item.status === "running"
+                  ? " is-pending"
+                  : item.status === "failed"
+                    ? " is-failed"
+                    : "";
+              return (
+                <article className={`request-card${cardModifier}`} key={item.id}>
+                  <div>
+                    <span className="keyword">{item.keyword}</span>
+                    <span className={`status-badge status-${item.status}`}>{item.status}</span>
+                  </div>
+                  <div className="meta">
+                    <span>язык {item.language}</span>
+                    <span className="sep">·</span>
+                    <span>стр. {item.page_size}</span>
+                    <span className="sep">·</span>
+                    <span>лимит {item.limit_count}</span>
+                  </div>
+                  {item.error_text ? <p className="alert">{item.error_text}</p> : null}
+                  <Link className="button button-secondary" href={`/searches/${item.id}`}>
+                    Открыть ИИ сводку
+                  </Link>
+                </article>
+              );
+            })}
           </div>
         )}
       </section>

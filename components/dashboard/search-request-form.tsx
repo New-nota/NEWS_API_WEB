@@ -124,7 +124,7 @@ export function SearchRequestForm({trialStatus}: Props) {
   }
 
   return (
-    <form className="card stack" onSubmit={onSubmit}>
+    <form className="stack" onSubmit={onSubmit}>
       <h2>Создать запрос</h2>
 
       <div className="field">

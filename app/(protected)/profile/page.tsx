@@ -48,27 +48,28 @@ export default async function ProfilePage({
   const hasNextPage = filters.page < newsData.totalPages;
   return (
     <div className="stack">
-      <section className="card stack">
-        <div className="section-header">
-          <div>
-            <h1>Профиль</h1>
-            <p className="muted">Данные аккаунта и NewsAPI ключ</p>
-          </div>
-        </div>
+      <header className="page-intro">
+        <p className="section-title">аккаунт / ключи</p>
+        <h1>Профиль</h1>
+        <p className="meta">
+          <span>данные аккаунта и NewsAPI ключ</span>
+        </p>
+      </header>
 
+      <section className="card stack">
         <div className="profile-grid">
           <div className="profile-row">
-            <span className="muted">Имя: </span>
+            <span className="muted">Имя</span>
             <strong>{user.name ?? "Не указано"}</strong>
           </div>
 
           <div className="profile-row">
-            <span className="muted">Почта: </span>
+            <span className="muted">Почта</span>
             <strong>{user.email}</strong>
           </div>
 
           <div className="profile-row">
-            <span className="muted">NewsAPI ключик: </span>
+            <span className="muted">NewsAPI ключик</span>
             <strong>
               {newsApiKeyStatus.hasNewsApiKey
                 ? `Сохранён, заканчивается на ${newsApiKeyStatus.last4}`
@@ -80,51 +81,50 @@ export default async function ProfilePage({
 
       <section className="card stack">
         <h2>Сохранить NewsAPI ключ</h2>
-        <p className="muted">
-         Ключ защищен шифрованием. 
-        </p>
+        <p className="muted">Ключ защищен шифрованием.</p>
 
         <NewsApiKeyForm initialStatus={newsApiKeyStatus} />
       </section>
+
       <section className="card stack">
-  <div className="section-header">
-    <h2>Мои новости</h2>
-    <p className="muted">
-      Итого: {newsData.total} - страница {filters.page} / {newsData.totalPages}
-    </p>
-  </div>
+        <div className="section-header">
+          <h2>Мои новости</h2>
+          <p className="muted">
+            Итого: {newsData.total} — страница {filters.page} / {newsData.totalPages}
+          </p>
+        </div>
 
-  <FilterForm
-    current={{
-      q: filters.q,
-      keyword: filters.keyword,
-      author: filters.author,
-      language: filters.language,
-      limit: filters.limit,
-    }}
-    options={filterOptions}
-  />
+        <FilterForm
+          current={{
+            q: filters.q,
+            keyword: filters.keyword,
+            author: filters.author,
+            language: filters.language,
+            limit: filters.limit,
+          }}
+          options={filterOptions}
+        />
 
-  <NewsTable rows={newsData.rows} />
+        <NewsTable rows={newsData.rows} />
 
-  <div className="pagination">
-    {hasPrevPage ? (
-      <Link className="button button-secondary" href={buildProfileQuery(filters, { page: filters.page - 1 })}>
-        Предыдущая
-      </Link>
-    ) : (
-      <span className="button button-secondary disabled">Пердыдущая</span>
-    )}
+        <div className="pagination">
+          {hasPrevPage ? (
+            <Link className="button button-secondary" href={buildProfileQuery(filters, { page: filters.page - 1 })}>
+              Предыдущая
+            </Link>
+          ) : (
+            <span className="button button-secondary disabled">Пердыдущая</span>
+          )}
 
-    {hasNextPage ? (
-      <Link className="button button-secondary" href={buildProfileQuery(filters, { page: filters.page + 1 })}>
-        Следущая
-      </Link>
-    ) : (
-      <span className="button button-secondary disabled">Следущая</span>
-    )}
-  </div>
-</section>
+          {hasNextPage ? (
+            <Link className="button button-secondary" href={buildProfileQuery(filters, { page: filters.page + 1 })}>
+              Следущая
+            </Link>
+          ) : (
+            <span className="button button-secondary disabled">Следущая</span>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

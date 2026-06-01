@@ -17,9 +17,16 @@ export default async function ProtectedLayout({
   return (
     <div className="app-shell">
       <header className="topbar">
-        <div>
-          <p className="eyebrow">We bear this news to you - @Bad News Bears Team</p>
-          <h1 className="topbar-title">Новости</h1>
+        <div className="brand-mark">
+          <img src="/mascot.svg" alt="Bad News Bears" width="48" height="48" />
+          <div>
+            <p className="brand-eyebrow">
+              <span>bnb · news desk</span>
+              <span className="sep">·</span>
+              <span className="live">live</span>
+            </p>
+            <span className="topbar-title">Новости</span>
+          </div>
         </div>
 
         <div className="topbar-actions">
@@ -29,7 +36,7 @@ export default async function ProtectedLayout({
             <Link href="/profile">Профиль</Link>
           </nav>
           <div className="user-block">
-            <div>
+            <div className="name-block">
               <div className="user-name">{session.user.name ?? "User"}</div>
               <div className="user-email">{session.user.email ?? "email-not-available"}</div>
             </div>

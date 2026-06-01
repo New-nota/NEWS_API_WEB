@@ -35,8 +35,12 @@ function getSafeExternalUrl(url: string) {
 export function NewsTable({ rows }: NewsTableProps) {
   if (rows.length === 0) {
     return (
-      <div className="empty-state">
-        Ничего не смогли подобрать. Сохздайте запрос или примените другой фильтр
+      <div className="state-block is-empty">
+        <img src="/mascot-sleeping.svg" width="64" height="64" alt="" />
+        <div className="state-copy">
+          <p className="state-title">Ничего не смогли подобрать.</p>
+          <div className="state-sub">создайте запрос или примените другой фильтр</div>
+        </div>
       </div>
     );
   }
@@ -77,7 +81,7 @@ export function NewsTable({ rows }: NewsTableProps) {
                 <td>{row.sourceName ?? "—"}</td>
                 <td>
                   {externalUrl ? (
-                    <a href={externalUrl} rel="noreferrer noopener" target="_blank">
+                    <a className="open-link" href={externalUrl} rel="noreferrer noopener" target="_blank">
                       Открыть
                     </a>
                   ) : (

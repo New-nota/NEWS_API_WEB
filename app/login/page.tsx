@@ -26,7 +26,19 @@ export default async function LoginPage({
   return (
     <main className="auth-page">
       <section className="auth-card">
-        <div className="badge">BAD NEWS BEARS новости</div>
+        <div className="login-brand">
+          <img src="/mascot.svg" alt="Bad News Bears" width="80" height="80" />
+          <div>
+            <p className="brand-eyebrow" style={{ margin: 0 }}>
+              <span>bnb · news desk</span>
+              <span className="sep">·</span>
+              <span className="live">live</span>
+            </p>
+            <span className="topbar-title">Новости</span>
+          </div>
+        </div>
+
+        <span className="badge">BAD NEWS BEARS новости</span>
         <h1>Зарегестрироваться</h1>
         <p className="muted">
           Для доступа к новостным лентам и аналитике, доступным только пользователям, требуется аутентификация.
@@ -39,7 +51,7 @@ export default async function LoginPage({
         <div className="hint-block">
           <h2>Что внутри?</h2>
           <ul>
-            <li>PostgreSQL храним там ваши данные &#10084;</li>
+            <li>PostgreSQL храним там ваши данные</li>
             <li>Гарантируем что у новости будет максимальное количество информации</li>
             <li>ААААналитика по уже существущим новостям и статьям</li>
             <li>Без NewsApiKey у пользователя есть возможность сделать 3 запроса</li>
